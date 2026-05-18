@@ -1,0 +1,13 @@
+Package: @PACKAGE_NAME@
+Version: @VERSION@
+Section: editors
+Priority: optional
+Architecture: @ARCH@
+Depends: @DEPENDS@
+Maintainer: @MAINTAINER@
+Installed-Size: @INSTALLED_SIZE@
+Homepage: @HOMEPAGE@
+Description: A lightweight native text editor for Linux developers
+ Velnix Editor is made for people who want a quick, flexible, and
+ capable editor for everyday text and source-code work.
+ This package installs the main editor executable and desktop entry.

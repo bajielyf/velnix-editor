@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Velnix Editor
+Comment=Edit text and source code
+Exec=velnix-editor %F
+Icon=org.velnix.VelnixEditor
+Terminal=false
+Categories=Utility;TextEditor;
+Keywords=text;editor;code;source;
+MimeType=text/plain;text/x-c;text/x-c++;text/x-python;text/x-shellscript;
+StartupNotify=true
+StartupWMClass=org.velnix.VelnixEditor
