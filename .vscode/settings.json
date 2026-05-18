@@ -1,0 +1,14 @@
+{
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.autocomplete": "Disabled",
+    "C_Cpp.errorSquiggles": "Disabled",
+    "clangd.path": "/usr/bin/clangd",
+    "clangd.arguments": [
+        "--background-index",
+        "--compile-commands-dir=${workspaceFolder}/build/package",
+        "--clang-tidy=false",
+        "--pch-storage=disk",
+        "--j=2"
+    ],
+    "clangd.onConfigChanged": "reload"
+}
