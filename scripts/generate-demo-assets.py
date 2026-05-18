@@ -225,14 +225,12 @@ def scene_markdown():
         frames.append(im)
     final = frames[-1].copy()
     draw = ImageDraw.Draw(final)
-    rounded(draw, (802, 196, 1090, 454), (255, 255, 255, 240), outline=(199, 209, 220), radius=12)
-    draw.text((828, 224), "Release Notes", fill=(28, 39, 52), font=F_SUB)
-    draw.line((828, 262, 1058, 262), fill=(218, 225, 233), width=2)
-    for n, item in enumerate(["Fast native startup", "Multi-tab editing", "Markdown-friendly text flow"]):
-        draw.ellipse((832, 292 + n * 38, 842, 302 + n * 38), fill=(48, 120, 214))
-        draw.text((856, 284 + n * 38), item, fill=(64, 75, 90), font=F_BADGE)
-    text_box(final, "Markdown", "Headings, lists, and code blocks stay readable while writing", accent=(88, 109, 67))
-    badge(final, "Markdown", fill=(88, 109, 67))
+    for n, label in enumerate(["Heading", "List", "Code block"]):
+        y = 208 + n * 68
+        rounded(draw, (806, y, 1018, y + 46), (255, 255, 255, 238), outline=(199, 209, 220), radius=12)
+        draw.text((834, y + 10), label, fill=(54, 65, 80), font=F_BADGE)
+    text_box(final, "Markdown Editing", "Write structured Markdown now; preview belongs in plugins", accent=(88, 109, 67))
+    badge(final, "Source Editing", fill=(88, 109, 67))
     save_cover("markdown", final)
     save_gif("markdown", frames + [final] * 5, 160)
 
