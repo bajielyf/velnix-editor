@@ -13,6 +13,30 @@ Planned first public release: **0.1.0**.
 
 ![Velnix Editor main window](docs/assets/main-window.png)
 
+Demo: Startup Speed
+
+![](./docs/assets/demo/startup-speed.gif)
+
+Demo: Open File
+
+![](./docs/assets/demo/open-file.gif)
+
+Demo: Editing Experience
+
+![](./docs/assets/demo/editing-experience.gif)
+
+Demo: UI Animation
+
+![](./docs/assets/demo/ui-animation.gif)
+
+Demo: Shortcuts
+
+![](./docs/assets/demo/shortcuts.gif)
+
+Demo: Markdown
+
+![](./docs/assets/demo/markdown.gif)
+
 ## Features
 
 - Native GTK interface with fast startup and low overhead
