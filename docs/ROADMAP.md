@@ -72,6 +72,8 @@ package name, executable name, and release process.
 - File state refresh runs on focus changes and through periodic checks.
 - User prompts exist for missing, inaccessible, and externally modified files.
 - Documents can be reloaded from disk.
+- Session restore reopens previous tabs and restores unsaved text, cursor, and
+  scroll state on launch.
 
 ### 5. Encoding and EOL Handling
 
@@ -92,6 +94,8 @@ package name, executable name, and release process.
   implemented.
 - Search result panel display, grouped interaction, and double-click navigation
   are implemented.
+- Find-all result building runs in the background, with cancellation support.
+- Search result refresh and auto-refresh controls are implemented.
 - Lexilla is integrated for syntax highlighting.
 - Lexer list loading, language-menu switching, and extension-based matching are
   implemented.
@@ -182,14 +186,10 @@ package name, executable name, and release process.
 
 - Consolidate configuration schema definitions to reduce loose coupling between
   UI options and stored fields.
-- Move long-running search work out of the UI path so large files and broad
-  searches remain responsive.
 - Add clearer error feedback and logging behavior.
-- Add refresh and auto-refresh options to the search results panel.
 - Add selected-keyword highlighting: when the user selects a word or token,
   matching occurrences throughout the current document should be highlighted,
   similar to the selected-word highlight behavior familiar from Notepad++.
-- Add session restore support.
 
 ### Medium Priority
 
@@ -240,7 +240,7 @@ package name, executable name, and release process.
 - Improve preferences and shortcut configuration experience.
 - Add drag-and-drop file opening.
 - Add first-pass theme customization.
-- Add session restore and more complete editing behavior controls.
+- Add more complete editing behavior controls.
 
 ### M4: Extensibility Foundation
 

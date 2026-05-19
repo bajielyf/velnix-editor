@@ -6,13 +6,13 @@ line and the main follow-up areas planned after the first public release.
 ## 1. Search Responsiveness
 
 Search and replace workflows are available, including result navigation and
-replace-all support. Current search behavior is still primarily synchronous, so
-very large files or broad search scopes may affect UI responsiveness.
+replace-all support. Find-all result building runs in the background, but very
+large files or broad search scopes still need release validation and tuning.
 
 Planned follow-up:
 
-- move long-running search work out of the main UI path
-- improve progress, cancellation, and refresh behavior for result sets
+- tune large-file and many-document search performance
+- improve progress and cancellation visibility for expensive result sets
 - add clearer feedback for expensive search operations
 
 ## 2. Theme and Appearance Customization
@@ -84,5 +84,5 @@ Recommended validation:
 - launch from both terminal and desktop entry
 - open, edit, save, reload, and close files
 - test search, replace, syntax highlighting, and encoding conversion
-- verify preferences, shortcuts, macros, and recent files
+- verify preferences, shortcuts, macros, recent files, and session restore
 - confirm installed documentation under `/usr/share/doc/velnix-editor/`

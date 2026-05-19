@@ -11,21 +11,41 @@ BASE = ROOT / "docs" / "assets" / "main-window.png"
 LOGO = ROOT / "docs" / "assets" / "logo-app.png"
 OUT = ROOT / "docs" / "assets" / "demo"
 
-FONT_REGULAR = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
-FONT_MEDIUM = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
-FONT_BOLD = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
+FONT_REGULAR = [
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/System/Library/Fonts/HelveticaNeue.ttc",
+    "/System/Library/Fonts/SFNS.ttf",
+]
+FONT_MEDIUM = [
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc",
+    "/System/Library/Fonts/HelveticaNeue.ttc",
+    "/System/Library/Fonts/SFNS.ttf",
+]
+FONT_BOLD = [
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+    "/System/Library/Fonts/HelveticaNeue.ttc",
+    "/System/Library/Fonts/SFNS.ttf",
+]
+FONT_MONO = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+    "/System/Library/Fonts/Menlo.ttc",
+    "/System/Library/Fonts/SFNSMono.ttf",
+]
 
 
-def font(path: str, size: int) -> ImageFont.FreeTypeFont:
-    return ImageFont.truetype(path, size)
+def font(paths: list[str], size: int) -> ImageFont.FreeTypeFont:
+    for path in paths:
+        if Path(path).exists():
+            return ImageFont.truetype(path, size)
+    return ImageFont.load_default(size=size)
 
 
 F_TITLE = font(FONT_BOLD, 42)
 F_SUB = font(FONT_REGULAR, 22)
 F_BODY = font(FONT_REGULAR, 21)
-F_MONO = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 21)
+F_MONO = font(FONT_MONO, 21)
 F_BADGE = font(FONT_MEDIUM, 18)
-F_KEY = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 23)
+F_KEY = font(FONT_MONO, 23)
 
 
 def base_frame() -> Image.Image:
@@ -167,53 +187,57 @@ def scene_editing():
     save_gif("editing-experience", frames + [final] * 5, 145)
 
 
-def scene_ui_animation():
+def scene_session_restore():
+    tabs = ["README.md", "notes.txt", "src/main.cpp"]
     frames = []
-    for i in range(12):
-        im = overlay_tint(base_frame(), 26)
+    for i in range(10):
+        im = overlay_tint(base_frame(), 34)
         draw = ImageDraw.Draw(im)
-        x = 810
-        y = 130 + i * 12
-        alpha = min(245, 65 + i * 18)
-        rounded(draw, (x, y, x + 352, y + 180), (255, 255, 255, alpha), outline=(196, 206, 218, alpha), radius=14)
-        draw.text((x + 26, y + 24), "Find and Replace", fill=(34, 45, 58, alpha), font=F_SUB)
-        rounded(draw, (x + 26, y + 70, x + 326, y + 112), (244, 247, 251, alpha), outline=(214, 221, 230, alpha), radius=8)
-        draw.text((x + 44, y + 80), "search term", fill=(84, 95, 110, alpha), font=F_BODY)
-        rounded(draw, (x + 222, y + 128, x + 326, y + 164), (48, 120, 214, alpha), radius=8)
-        draw.text((x + 248, y + 134), "Find", fill=(255, 255, 255, alpha), font=F_BADGE)
+        rounded(draw, (228, 126, 1056, 666), (252, 253, 255, 246), outline=(199, 209, 220), radius=12)
+        draw.text((264, 158), "Restoring previous session", fill=(34, 45, 58), font=F_SUB)
+        for n, tab in enumerate(tabs):
+            y = 222 + n * 96
+            alpha = 90 + min(145, max(0, i - n * 2) * 36)
+            rounded(draw, (268, y, 1014, y + 66), (244, 247, 251, alpha), outline=(205, 214, 225, alpha), radius=10)
+            draw.text((302, y + 18), tab, fill=(38, 50, 64, alpha), font=F_BODY)
+            if i > n * 2 + 1:
+                draw.text((882, y + 18), "restored", fill=(27, 138, 103, alpha), font=F_BADGE)
+        if i > 6:
+            code_panel(im, ["# Velnix Editor", "", "Session state restored.", "Cursor, scroll, and tabs return."],
+                       pos=(300, 474), size=(680, 160), active_line=2)
         frames.append(im)
     final = frames[-1].copy()
-    text_box(final, "UI Animation", "Smooth search panels, status feedback, and transitions", accent=(128, 88, 200))
-    badge(final, "Motion", fill=(128, 88, 200))
-    save_cover("ui-animation", final)
-    save_gif("ui-animation", frames + [final] * 5, 135)
+    text_box(final, "Session Restore", "Open tabs, unsaved text, cursor, and scroll state return on launch", accent=(82, 105, 186))
+    badge(final, "Restore", fill=(82, 105, 186))
+    save_cover("session-restore", final)
+    save_gif("session-restore", frames + [final] * 5, 165)
 
 
-def keycap(draw: ImageDraw.ImageDraw, x: int, y: int, text: str, w: int = 92):
-    rounded(draw, (x, y, x + w, y + 54), (255, 255, 255, 246), outline=(184, 194, 207), radius=10)
-    tw = draw.textlength(text, font=F_KEY)
-    draw.text((x + (w - tw) / 2, y + 13), text, fill=(30, 40, 54), font=F_KEY)
-
-
-def scene_shortcuts():
-    shortcuts = [("Ctrl", "O", "Open"), ("Ctrl", "S", "Save"), ("Ctrl", "F", "Find"), ("Ctrl", "Z", "Undo")]
+def scene_macros():
+    steps = ["Start recording", "Type text", "Run search", "Save macro", "Play macro"]
     frames = []
-    for i in range(len(shortcuts)):
-        im = overlay_tint(base_frame(), 46)
+    for i in range(12):
+        im = overlay_tint(base_frame(), 40)
         draw = ImageDraw.Draw(im)
-        for n, (a, b, label) in enumerate(shortcuts[: i + 1]):
-            y = 180 + n * 105
-            keycap(draw, 352, y, a, 112)
-            draw.text((482, y + 12), "+", fill=(255, 255, 255), font=F_TITLE)
-            keycap(draw, 530, y, b, 78)
-            rounded(draw, (636, y + 3, 772, y + 51), (28, 38, 52, 188), radius=10)
-            draw.text((666, y + 12), label, fill=(255, 255, 255), font=F_SUB)
-        frames.extend([im] * 2)
+        code_panel(im, ["for item in items:", "    process(item)", "", "find: TODO", "replace: DONE"],
+                   pos=(214, 166), size=(590, 380), active_line=min(4, i // 3))
+        rounded(draw, (844, 146, 1128, 548), (255, 255, 255, 246), outline=(199, 209, 220), radius=12)
+        draw.text((876, 176), "Macro Workflow", fill=(34, 45, 58), font=F_SUB)
+        for n, step in enumerate(steps):
+            y = 232 + n * 54
+            active = n <= min(4, i // 2)
+            fill = (48, 120, 214, 238) if active else (228, 233, 240, 238)
+            text_fill = (255, 255, 255) if active else (86, 98, 112)
+            rounded(draw, (878, y, 1092, y + 36), fill, radius=9)
+            draw.text((900, y + 6), step, fill=text_fill, font=F_BADGE)
+        if i % 2 == 0:
+            draw.rectangle((416, 236, 419, 264), fill=(30, 92, 180))
+        frames.append(im)
     final = frames[-1].copy()
-    text_box(final, "Shortcuts", "Frequent actions stay fast in keyboard-driven workflows", accent=(38, 128, 140))
-    badge(final, "Shortcuts", fill=(38, 128, 140))
-    save_cover("shortcuts", final)
-    save_gif("shortcuts", frames + [final] * 5, 220)
+    text_box(final, "Macros", "Record editing and search actions, then save, manage, and replay them", accent=(164, 92, 44))
+    badge(final, "Automation", fill=(164, 92, 44))
+    save_cover("macros", final)
+    save_gif("macros", frames + [final] * 5, 155)
 
 
 def scene_markdown():
@@ -240,8 +264,8 @@ def make_index():
         ("Startup Speed", "startup-speed"),
         ("Open File", "open-file"),
         ("Editing Experience", "editing-experience"),
-        ("UI Animation", "ui-animation"),
-        ("Shortcuts", "shortcuts"),
+        ("Session Restore", "session-restore"),
+        ("Macros", "macros"),
         ("Markdown", "markdown"),
     ]
     content = ["# Velnix Editor Demo Assets", ""]
@@ -257,8 +281,8 @@ def main():
     scene_startup()
     scene_open_file()
     scene_editing()
-    scene_ui_animation()
-    scene_shortcuts()
+    scene_session_restore()
+    scene_macros()
     scene_markdown()
     make_index()
 

@@ -13,27 +13,31 @@ Planned first public release: **0.1.0**.
 
 ![Velnix Editor main window](docs/assets/main-window.png)
 
-Demo: Startup Speed
+## Feature Demos
+
+Current demos focus on implemented editing workflows in the 0.1.0 foundation.
+
+### Fast Startup
 
 ![](./docs/assets/demo/startup-speed.gif)
 
-Demo: Open File
+### Opening Files
 
 ![](./docs/assets/demo/open-file.gif)
 
-Demo: Editing Experience
+### Editing Basics
 
 ![](./docs/assets/demo/editing-experience.gif)
 
-Demo: UI Animation
+### Session Restore
 
-![](./docs/assets/demo/ui-animation.gif)
+![](./docs/assets/demo/session-restore.gif)
 
-Demo: Shortcuts
+### Macro Recording and Playback
 
-![](./docs/assets/demo/shortcuts.gif)
+![](./docs/assets/demo/macros.gif)
 
-Demo: Markdown
+### Markdown Syntax Highlighting
 
 ![](./docs/assets/demo/markdown.gif)
 

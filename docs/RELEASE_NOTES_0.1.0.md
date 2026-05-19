@@ -6,7 +6,7 @@ native text editor for Linux developers.
 This release establishes the core desktop editing experience: a GTK application
 shell, tabbed documents, Scintilla-based editing, syntax highlighting, search
 and replace, encoding handling, macro support, preferences, shortcuts, recent
-files, and Debian packaging.
+files, session restore, and Debian packaging.
 
 ## Highlights
 
@@ -23,6 +23,7 @@ files, and Debian packaging.
   and ANSI fallback workflows.
 - External file state detection for missing, inaccessible, and modified-on-disk
   files, with reload prompts.
+- Session restore for previous tabs, unsaved text, cursor, and scroll state.
 - Macro recording, playback, save, load, rename, and delete support.
 - Preferences, shortcut configuration, recent file persistence, and macro
   persistence.
@@ -70,8 +71,8 @@ The generated package is written to `dist/`.
 
 ## Known Limitations
 
-- Search is still primarily synchronous and may need optimization for large
-  files or broad search scopes.
+- Very large files or broad search scopes still need additional performance
+  validation and tuning.
 - Theme customization, drag-and-drop file opening, selected-keyword occurrence
   highlighting, and plugin support are planned for later releases.
 - End-user documentation is intentionally minimal in this first release and
