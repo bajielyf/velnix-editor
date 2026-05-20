@@ -9,7 +9,7 @@ endif()
 include(GNUInstallDirs)
 
 set(VELNIX_EDITOR_VERSION "${CMAKE_PROJECT_VERSION}" CACHE STRING "Velnix Editor application version")
-set(VELNIX_HOMEPAGE "https://github.com/bajielyf/velnix-editor" CACHE STRING "Velnix Editor homepage URL")
+set(VELNIX_HOMEPAGE "https://bajielyf.github.io/velnix-editor" CACHE STRING "Velnix Editor homepage URL")
 
 # When built standalone, pull in the editor libraries from sibling directories.
 if(NOT TARGET scintilla)

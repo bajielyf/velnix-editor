@@ -26,7 +26,7 @@
 #endif
 
 #ifndef VELNIX_HOMEPAGE
-#define VELNIX_HOMEPAGE "https://github.com/bajielyf/velnix-editor"
+#define VELNIX_HOMEPAGE "https://bajielyf.github.io/velnix-editor"
 #endif
 
 namespace {
