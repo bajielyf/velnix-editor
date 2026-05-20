@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Velnix Editor - Lightweight Native Text Editor for Linux</title>
+
+<meta name="description"
+      content="Velnix Editor is a lightweight native text editor for Linux developers. Fast startup, low memory usage, syntax highlighting, session restore, macros, and practical editing workflows.">
+
+<meta name="keywords"
+      content="linux text editor, lightweight editor, native editor, gtk editor, scintilla editor, source code editor, notepad++ alternative linux, fast text editor">
+
+<meta name="author" content="Velnix Editor">
+
+<meta property="og:title"
+      content="Velnix Editor">
+
+<meta property="og:description"
+      content="Fast. Native. Practical. A lightweight Linux text editor for developers.">
+
+<meta property="og:type"
+      content="website">
+
+<meta property="og:image"
+      content="assets/main-window.png">
+
+<meta property="og:url"
+      content="https://bajielyf.github.io/velnix-editor/">
+
+<link rel="canonical"
+      href="https://bajielyf.github.io/velnix-editor/">
+
+<style>
+
+:root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --text: #e8e8e8;
+    --sub: #9ca3af;
+    --border: #2c3442;
+    --accent: #5aa9ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, system-ui, sans-serif;
+    line-height: 1.75;
+}
+
+.container {
+    width: min(1120px, 92%);
+    margin: auto;
+}
+
+header {
+    padding: 100px 0 80px;
+    border-bottom: 1px solid var(--border);
+}
+
+.logo {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -2px;
+}
+
+.tagline {
+    margin-top: 18px;
+    font-size: 24px;
+    color: var(--sub);
+    max-width: 780px;
+}
+
+.description {
+    margin-top: 24px;
+    max-width: 840px;
+    color: #cfd4dc;
+}
+
+.actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.button {
+    display: inline-block;
+    padding: 14px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: 0.2s;
+}
+
+.primary {
+    background: var(--accent);
+    color: white;
+}
+
+.primary:hover {
+    transform: translateY(-1px);
+}
+
+.secondary {
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+section {
+    padding: 80px 0;
+}
+
+.section-title {
+    font-size: 34px;
+    margin-bottom: 28px;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 22px;
+}
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px;
+}
+
+.card h3 {
+    margin-top: 0;
+    font-size: 22px;
+}
+
+.card p {
+    color: var(--sub);
+}
+
+.hero-image {
+    margin-top: 40px;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.hero-image img {
+    width: 100%;
+    display: block;
+}
+
+.demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.demo-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.demo-card img {
+    width: 100%;
+    display: block;
+}
+
+.demo-card h3 {
+    margin: 18px;
+    margin-bottom: 8px;
+}
+
+.demo-card p {
+    margin: 18px;
+    margin-top: 0;
+    color: var(--sub);
+}
+
+pre {
+    background: #11151d;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    color: #d1d5db;
+}
+
+footer {
+    padding: 50px 0;
+    border-top: 1px solid var(--border);
+    color: var(--sub);
+    text-align: center;
+}
+
+a {
+    color: var(--accent);
+}
+
+@media (max-width: 700px) {
+
+    .logo {
+        font-size: 40px;
+    }
+
+    .tagline {
+        font-size: 20px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="container">
+
+    <div class="logo">Velnix Editor</div>
+
+    <div class="tagline">
+        Fast. Native. Practical.
+    </div>
+
+    <div class="description">
+        Velnix Editor is a lightweight native text editor for Linux developers.
+        Built with GTK, Scintilla, and Lexilla, it focuses on fast startup,
+        low resource usage, and practical editing workflows for text and source code.
+    </div>
+
+    <div class="actions">
+
+        <a class="button primary"
+           href="https://github.com/bajielyf/velnix-editor/releases">
+            Download
+        </a>
+
+        <a class="button secondary"
+           href="https://github.com/bajielyf/velnix-editor">
+            GitHub
+        </a>
+
+    </div>
+
+    <div class="hero-image">
+        <img src="assets/main-window.png"
+             alt="Velnix Editor main window">
+    </div>
+
+</div>
+</header>
+
+<section>
+<div class="container">
+
+    <h2 class="section-title">
+        Lightweight Native Editor for Linux
+    </h2>
+
+    <div class="features">
+
+        <div class="card">
+            <h3>⚡ Fast Startup</h3>
+            <p>
+                Opens quickly with low overhead and responsive native performance.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>📄 Large File Editing</h3>
+            <p>
+                Designed for comfortable editing of logs, notes, and source files.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>💾 Session Restore</h3>
+            <p>
+                Restore tabs and continue working after reopening the application.
+            </p>
+        </div>
+
+        <div class="card">
+            <h3>🧠 Practical Workflows</h3>
+            <p>
+                Macros, syntax highlighting, find/replace, encoding conversion, and more.
+            </p>
+        </div>
+
+    </div>
+
+</div>
+</section>
+
+<section>
+<div class="container">
+
+    <h2 class="section-title">
+        Feature Demos
+    </h2>
+
+    <div class="demo-grid">
+
+        <div class="demo-card">
+            <img src="assets/demo/startup-speed.gif"
+                 alt="Fast startup demo">
+            <h3>Fast Startup</h3>
+            <p>Quick launch experience optimized for daily editing.</p>
+        </div>
+
+        <div class="demo-card">
+            <img src="assets/demo/open-file.gif"
+                 alt="Open file demo">
+            <h3>Opening Files</h3>
+            <p>Open and switch between files efficiently.</p>
+        </div>
+
+        <div class="demo-card">
+            <img src="assets/demo/editing-experience.gif"
+                 alt="Editing demo">
+            <h3>Editing Basics</h3>
+            <p>Comfortable text editing with native responsiveness.</p>
+        </div>
+
+        <div class="demo-card">
+            <img src="assets/demo/session-restore.gif"
+                 alt="Session restore demo">
+            <h3>Session Restore</h3>
+            <p>Recover previous sessions and unsaved work automatically.</p>
+        </div>
+
+        <div class="demo-card">
+            <img src="assets/demo/macros.gif"
+                 alt="Macro demo">
+            <h3>Macros</h3>
+            <p>Record and replay repetitive editing actions.</p>
+        </div>
+
+        <div class="demo-card">
+            <img src="assets/demo/markdown.gif"
+                 alt="Markdown syntax highlighting demo">
+            <h3>Markdown Highlighting</h3>
+            <p>Built-in syntax highlighting powered by Lexilla.</p>
+        </div>
+
+    </div>
+
+</div>
+</section>
+
+<section>
+<div class="container">
+
+    <h2 class="section-title">
+        Build From Source
+    </h2>
+
+<pre>
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j4
+./build/VelnixEditor/velnix-editor
+</pre>
+
+</div>
+</section>
+
+<section>
+<div class="container">
+
+    <h2 class="section-title">
+        Philosophy
+    </h2>
+
+    <p>
+        Velnix Editor is not trying to become a heavy IDE.
+        It focuses on the daily editing loop:
+        open quickly, edit comfortably, search confidently,
+        save safely, and stay out of the way.
+    </p>
+
+    <p>
+        The goal is to provide a middle ground between minimal editors
+        and full development environments:
+        lightweight but capable,
+        native but modern,
+        practical without unnecessary complexity.
+    </p>
+
+</div>
+</section>
+
+<footer>
+<div class="container">
+
+    © 2026 Velnix Editor
+
+</div>
+</footer>
+
+</body>
+</html>
