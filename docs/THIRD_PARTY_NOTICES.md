@@ -1,7 +1,7 @@
 # Velnix Editor Third-Party Notices
 
-This document summarizes project-level license and dependency notes for the
-first standalone Velnix Editor release. It is not a replacement for the license
+This document summarizes project-level license and dependency notes for Velnix
+Editor releases. It is not a replacement for the license
 headers and license files inside third-party source directories; those notices
 must remain with the relevant source.
 
@@ -29,9 +29,9 @@ When distributing source or binary packages:
 - preserve the repository `LICENSE`
 - include or reference this notice summary when practical
 
-## First-Release Review Items
+## Release Review Items
 
-Before the first public release, review the release package contents and confirm:
+Before publishing a release, review the release package contents and confirm:
 
 - which third-party files are included in source archives
 - which files are installed into binary packages

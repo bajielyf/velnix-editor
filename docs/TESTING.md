@@ -2,7 +2,7 @@
 
 This document records the currently available test and validation entry points.
 It is intentionally practical: these are the commands a release preparer should
-be able to run or review before publishing the first standalone release.
+be able to run or review before publishing a release.
 
 ## 1. Build All Main Targets
 

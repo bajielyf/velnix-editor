@@ -56,9 +56,9 @@ Default behavior:
 Version note: the packaging script reads the top-level CMake project version.
 The top-level `CMakeLists.txt` is the release version source. The application
 subproject uses that value during normal repository builds and only declares a
-fallback version when built standalone. The first release should still confirm
-that the package version, changelog, release tag, and release notes all use the
-same value.
+fallback version when built standalone. Each release should still confirm that
+the package version, changelog, release tag, website metadata, and release notes
+all use the same value.
 
 ## 4. Common Packaging Overrides
 
@@ -79,7 +79,7 @@ The script supports environment variable overrides. Common options include:
 Example:
 
 ```bash
-VERSION=0.1.0 BUILD_TYPE=Release ./scripts/build-deb.sh
+VERSION=0.1.1 BUILD_TYPE=Release ./scripts/build-deb.sh
 ```
 
 ## 5. Install the Generated Debian Package
@@ -98,7 +98,7 @@ The installed package includes:
 
 ## 6. Suggested Pre-Release Checks
 
-Before preparing the first release, verify at minimum:
+Before preparing a release, verify at minimum:
 
 - source build completes successfully
 - `.deb` package generation completes successfully

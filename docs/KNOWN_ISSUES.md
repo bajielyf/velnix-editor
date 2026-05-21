@@ -1,7 +1,7 @@
 # Velnix Editor Known Limitations
 
-This document records known limitations for the Velnix Editor 0.1.0 release
-line and the main follow-up areas planned after the first public release.
+This document records known limitations for the Velnix Editor 0.1.1 release
+line and the main follow-up areas planned after this release.
 
 ## 1. Search Responsiveness
 
@@ -17,7 +17,7 @@ Planned follow-up:
 
 ## 2. Theme and Appearance Customization
 
-The first release focuses on the core native editing workflow. Full theme
+The current release focuses on the core native editing workflow. Full theme
 customization is not included yet.
 
 Planned follow-up:
@@ -29,7 +29,7 @@ Planned follow-up:
 ## 3. Drag-and-Drop File Opening
 
 Files can be opened through the menu and file dialogs, but drag-and-drop file
-opening for the main window and tab area is not part of the 0.1.0 release.
+opening for the main window and tab area is not part of the 0.1.1 release.
 
 Planned follow-up:
 
@@ -39,7 +39,7 @@ Planned follow-up:
 
 ## 4. Plugin Support
 
-Velnix Editor 0.1.0 does not include a plugin system. The first release keeps
+Velnix Editor 0.1.1 does not include a plugin system. This release keeps
 the extension boundary intentionally simple while the core editor behavior
 stabilizes.
 
@@ -61,11 +61,10 @@ Planned follow-up:
 - add troubleshooting notes for common packaging and runtime issues
 - keep release notes and user documentation aligned as features grow
 
-## 6. First-Release Validation Scope
+## 6. Release Validation Scope
 
-The 0.1.0 release is intended as the first public baseline. Before publishing a
-final artifact, validate the generated Debian package in a clean or disposable
-Linux environment.
+Before publishing a final artifact, validate the generated Debian package in a
+clean or disposable Linux environment.
 
 Recommended validation:
 

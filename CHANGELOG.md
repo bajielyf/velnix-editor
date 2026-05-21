@@ -2,6 +2,17 @@
 
 All notable project-level changes intended for published releases should be recorded in this file.
 
+## [0.1.1] - 2026-05-22
+
+Patch release focused on selected-keyword occurrence highlighting.
+
+### Added
+
+- Added selected-keyword occurrence highlighting for the active document.
+- Double-click word selection highlights matching occurrences immediately.
+- Normal text selection can highlight matching occurrences when smart keyword
+  highlighting is enabled.
+
 ## [0.1.0] - 2026-05-18
 
 Initial public release of Velnix Editor.

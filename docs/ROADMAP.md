@@ -3,10 +3,9 @@
 ## Purpose
 
 This roadmap tracks the current state of Velnix Editor, the remaining work
-before the first standalone release, and the likely direction after that
-release.
+before the next release, and the likely direction after that release.
 
-Last updated: 2026-05-15
+Last updated: 2026-05-22
 
 ## Current Positioning
 
@@ -26,8 +25,8 @@ package name, executable name, and release process.
 - Debian packaging exists through `scripts/build-deb.sh`.
 - README, project overview, installation, testing, encoding, known limitations,
   third-party notices, release checklist, license, and changelog now exist.
-- First-release preparation is now mainly about package boundary review,
-  release validation, release metadata confirmation, and UI/product polish.
+- Release preparation is now mainly about package boundary review, release
+  validation, release metadata confirmation, and UI/product polish.
 
 ## Completed Work
 
@@ -137,13 +136,13 @@ package name, executable name, and release process.
 - `docs/INSTALL.md` documents build, run, package, and install steps.
 - `docs/TESTING.md` documents available test targets and smoke tests.
 - `docs/ENCODING.md` documents encoding detection and conversion behavior.
-- `docs/KNOWN_ISSUES.md` records first-release limitations.
+- `docs/KNOWN_ISSUES.md` records current release limitations.
 - `docs/THIRD_PARTY_NOTICES.md` summarizes bundled third-party source notes.
-- `docs/RELEASE_CHECKLIST.md` tracks first-release verification.
+- `docs/RELEASE_CHECKLIST.md` tracks release verification.
 - `CHANGELOG.md` exists for release-facing changes.
 - `LICENSE` has a Velnix Editor project preamble and keeps the GPLv3 text.
 
-## First-Release Blockers
+## Release Blockers
 
 ### 1. Release Metadata Confirmation
 
@@ -176,7 +175,7 @@ package name, executable name, and release process.
   syntax highlighting, encoding conversion, preferences, shortcuts, and recent
   file behavior.
 
-### 4. Product Polish for First Release
+### 4. Product Polish for Release
 
 - Add or finalize application icon assets.
 - Confirm desktop entry metadata and package description.
@@ -220,14 +219,14 @@ package name, executable name, and release process.
 
 ## Milestones
 
-### M1: 0.1.0 Release Candidate Cleanup
+### M1: 0.1.1 Patch Release Cleanup
 
-- Confirm release metadata for version `0.1.0`.
+- Confirm release metadata for version `0.1.1`.
 - Confirm package contents and installed files.
 - Complete build, test, package, and install validation.
-- Finish first-release notes and known limitations.
+- Finish release notes and known limitations.
 
-### M2: First Standalone Release, 0.1.0
+### M2: Patch Release, 0.1.1
 
 - Publish package artifact.
 - Publish changelog and known issues.
