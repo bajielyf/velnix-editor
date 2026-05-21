@@ -40,6 +40,10 @@ constexpr long kBraceHighlightForeground = 0x2B6CB0;
 constexpr long kBraceHighlightBackground = 0xDCEEFF;
 constexpr long kBraceBadForeground = 0xC53030;
 constexpr long kBraceBadBackground = 0xFFE3E3;
+constexpr int kSelectedKeywordIndicator = 8;
+constexpr long kSelectedKeywordIndicatorColor = 0x80FF00;
+constexpr int kSelectedKeywordIndicatorAlpha = 72;
+constexpr sptr_t kMaxSelectedKeywordLength = 128;
 
 enum class CaseTransform { Uppercase, Lowercase, TitleCase };
 
@@ -74,6 +78,30 @@ bool is_brace_character(char ch) {
     default:
       return false;
   }
+}
+
+bool is_ascii_token_character(char ch) {
+  const unsigned char uch = static_cast<unsigned char>(ch);
+  return std::isalnum(uch) || ch == '_';
+}
+
+bool is_plain_ascii_token(const std::string &text) {
+  if (text.empty()) {
+    return false;
+  }
+  return std::all_of(text.begin(), text.end(), is_ascii_token_character);
+}
+
+bool is_highlightable_selected_keyword(const std::string &text) {
+  if (text.empty() ||
+      static_cast<sptr_t>(text.size()) > kMaxSelectedKeywordLength) {
+    return false;
+  }
+
+  return std::none_of(text.begin(), text.end(), [](char ch) {
+    const unsigned char uch = static_cast<unsigned char>(ch);
+    return std::isspace(uch) || ch == '\0';
+  });
 }
 
 int clamp_int(int value, int minValue, int maxValue) {
@@ -998,10 +1026,6 @@ void EditorWindow::refreshDynamicHighlights(int index, int updateFlags) {
     return;
   }
 
-  if (!highlightMatchingBraces && !highlightCurrentColumn) {
-    return;
-  }
-
   const bool contentChanged = (updateFlags & SC_UPDATE_CONTENT) != 0;
   const bool selectionChanged =
       (updateFlags & SC_UPDATE_SELECTION) != 0 || updateFlags == SC_UPDATE_NONE;
@@ -1018,6 +1042,20 @@ void EditorWindow::refreshDynamicHighlights(int index, int updateFlags) {
   if (selectionChanged) {
     updateCurrentColumnHighlightForDocument(*doc, false, currentPos);
   }
+  if (contentChanged || selectionChanged) {
+    updateSelectedKeywordHighlightForDocument(*doc, contentChanged);
+  }
+}
+
+void EditorWindow::handleSelectedKeywordDoubleClick(int index) {
+  Document *doc = getDocument(index);
+  if (!doc || !doc->scintilla) {
+    return;
+  }
+
+  doc->selectedKeywordHighlightFromDoubleClick = true;
+  doc->selectedKeywordDoubleClickText.clear();
+  updateSelectedKeywordHighlightForDocument(*doc, true, true);
 }
 
 void EditorWindow::handleMacroScintillaNotification(
@@ -1471,6 +1509,17 @@ void EditorWindow::applyEditorBehaviorSettings(GtkWidget *scintilla) {
                            STYLE_BRACEBAD, kBraceBadForeground);
     scintilla_send_message(SCINTILLA(target), SCI_STYLESETBACK,
                            STYLE_BRACEBAD, kBraceBadBackground);
+    scintilla_send_message(SCINTILLA(target), SCI_INDICSETSTYLE,
+                           kSelectedKeywordIndicator, INDIC_ROUNDBOX);
+    scintilla_send_message(SCINTILLA(target), SCI_INDICSETFORE,
+                           kSelectedKeywordIndicator,
+                           kSelectedKeywordIndicatorColor);
+    scintilla_send_message(SCINTILLA(target), SCI_INDICSETALPHA,
+                           kSelectedKeywordIndicator,
+                           kSelectedKeywordIndicatorAlpha);
+    scintilla_send_message(SCINTILLA(target), SCI_INDICSETOUTLINEALPHA,
+                           kSelectedKeywordIndicator,
+                           kSelectedKeywordIndicatorAlpha + 36);
     scintilla_send_message(SCINTILLA(target), SCI_SETENDATLASTLINE,
                            scrollPastLastLine ? 0 : 1, 0);
     scintilla_send_message(SCINTILLA(target), SCI_SETEDGECOLOUR,
@@ -1508,6 +1557,7 @@ void EditorWindow::applyEditorBehaviorSettings(GtkWidget *scintilla) {
     }
 
     updateBraceHighlighting(target);
+    updateSelectedKeywordHighlight(target);
   };
 
   if (scintilla) {
@@ -1632,6 +1682,20 @@ void EditorWindow::updateCurrentColumnHighlight(GtkWidget *scintilla) {
   }
 }
 
+void EditorWindow::updateSelectedKeywordHighlight(GtkWidget *scintilla) {
+  if (scintilla) {
+    int index = findDocumentIndexByScintilla(scintilla);
+    if (Document *doc = getDocument(index)) {
+      updateSelectedKeywordHighlightForDocument(*doc, true);
+    }
+    return;
+  }
+
+  for (auto &doc : documents) {
+    updateSelectedKeywordHighlightForDocument(doc, true);
+  }
+}
+
 void EditorWindow::updateBraceHighlightingForDocument(Document &doc, bool force,
                                                       sptr_t currentPos) {
   GtkWidget *target = doc.scintilla;
@@ -1752,6 +1816,121 @@ void EditorWindow::updateCurrentColumnHighlightForDocument(Document &doc,
 
   doc.cachedCurrentColumnHighlight = currentColumn;
   doc.cachedCurrentColumnHighlightEnabled = true;
+}
+
+void EditorWindow::updateSelectedKeywordHighlightForDocument(Document &doc,
+                                                             bool force,
+                                                             bool allowWhenSmartDisabled) {
+  GtkWidget *target = doc.scintilla;
+  if (!target) {
+    return;
+  }
+
+  const sptr_t textLength =
+      scintilla_send_message(SCINTILLA(target), SCI_GETTEXTLENGTH, 0, 0);
+  std::string selectedText;
+  const sptr_t selectionCount =
+      scintilla_send_message(SCINTILLA(target), SCI_GETSELECTIONS, 0, 0);
+  if (selectionCount == 1) {
+    sptr_t selectionStart = scintilla_send_message(
+        SCINTILLA(target), SCI_GETSELECTIONSTART, 0, 0);
+    sptr_t selectionEnd = scintilla_send_message(
+        SCINTILLA(target), SCI_GETSELECTIONEND, 0, 0);
+    if (selectionStart > selectionEnd) {
+      std::swap(selectionStart, selectionEnd);
+    }
+    const sptr_t selectionLength = selectionEnd - selectionStart;
+    if (selectionLength > 0 &&
+        selectionLength <= kMaxSelectedKeywordLength) {
+      std::vector<char> buffer(static_cast<size_t>(selectionLength) + 1, '\0');
+      scintilla_send_message(SCINTILLA(target), SCI_GETSELTEXT, 0,
+                             reinterpret_cast<sptr_t>(buffer.data()));
+      selectedText.assign(buffer.data(), static_cast<size_t>(selectionLength));
+    }
+  }
+
+  if (!is_highlightable_selected_keyword(selectedText)) {
+    if (force || !doc.cachedSelectedKeywordHighlight.empty()) {
+      scintilla_send_message(SCINTILLA(target), SCI_SETINDICATORCURRENT,
+                             kSelectedKeywordIndicator, 0);
+      scintilla_send_message(SCINTILLA(target), SCI_INDICATORCLEARRANGE, 0,
+                             textLength);
+    }
+    doc.cachedSelectedKeywordHighlight.clear();
+    doc.cachedSelectedKeywordDocumentLength = textLength;
+    if (!allowWhenSmartDisabled) {
+      doc.selectedKeywordHighlightFromDoubleClick = false;
+      doc.selectedKeywordDoubleClickText.clear();
+    }
+    return;
+  }
+
+  if (doc.selectedKeywordHighlightFromDoubleClick &&
+      doc.selectedKeywordDoubleClickText.empty()) {
+    doc.selectedKeywordDoubleClickText = selectedText;
+  }
+
+  if (!smartKeywordHighlighting) {
+    const bool allowDoubleClickHighlight =
+        doc.selectedKeywordHighlightFromDoubleClick &&
+        selectedText == doc.selectedKeywordDoubleClickText;
+    if (!allowDoubleClickHighlight) {
+      if (force || !doc.cachedSelectedKeywordHighlight.empty()) {
+        scintilla_send_message(SCINTILLA(target), SCI_SETINDICATORCURRENT,
+                               kSelectedKeywordIndicator, 0);
+        scintilla_send_message(SCINTILLA(target), SCI_INDICATORCLEARRANGE, 0,
+                               textLength);
+      }
+      doc.cachedSelectedKeywordHighlight.clear();
+      doc.cachedSelectedKeywordDocumentLength = textLength;
+      doc.selectedKeywordHighlightFromDoubleClick = false;
+      doc.selectedKeywordDoubleClickText.clear();
+      return;
+    }
+  } else if (!allowWhenSmartDisabled) {
+    doc.selectedKeywordHighlightFromDoubleClick = false;
+    doc.selectedKeywordDoubleClickText.clear();
+  }
+
+  if (!force && doc.cachedSelectedKeywordHighlight == selectedText &&
+      doc.cachedSelectedKeywordDocumentLength == textLength) {
+    return;
+  }
+
+  scintilla_send_message(SCINTILLA(target), SCI_SETINDICATORCURRENT,
+                         kSelectedKeywordIndicator, 0);
+  scintilla_send_message(SCINTILLA(target), SCI_INDICATORCLEARRANGE, 0,
+                         textLength);
+
+  const sptr_t selectedLength = static_cast<sptr_t>(selectedText.size());
+  sptr_t searchStart = 0;
+  const int searchFlags = SCFIND_MATCHCASE |
+                          (is_plain_ascii_token(selectedText)
+                               ? SCFIND_WHOLEWORD
+                               : 0);
+  scintilla_send_message(SCINTILLA(target), SCI_SETSEARCHFLAGS, searchFlags, 0);
+
+  while (searchStart <= textLength - selectedLength) {
+    scintilla_send_message(SCINTILLA(target), SCI_SETTARGETRANGE, searchStart,
+                           textLength);
+    const sptr_t matchStart = scintilla_send_message(
+        SCINTILLA(target), SCI_SEARCHINTARGET, selectedLength,
+        reinterpret_cast<sptr_t>(selectedText.c_str()));
+    if (matchStart == INVALID_POSITION) {
+      break;
+    }
+    const sptr_t matchEnd =
+        scintilla_send_message(SCINTILLA(target), SCI_GETTARGETEND, 0, 0);
+    if (matchEnd <= matchStart) {
+      break;
+    }
+    scintilla_send_message(SCINTILLA(target), SCI_INDICATORFILLRANGE,
+                           matchStart, matchEnd - matchStart);
+    searchStart = matchEnd;
+  }
+
+  doc.cachedSelectedKeywordHighlight = selectedText;
+  doc.cachedSelectedKeywordDocumentLength = textLength;
 }
 
 bool EditorWindow::save_file() { return documentManager->saveDocument(currentDocumentIndex); }
@@ -2100,6 +2279,7 @@ EditorWindow::ConfigState EditorWindow::getConfigState() const {
   config.highlightCurrentLine = highlightCurrentLine;
   config.highlightCurrentColumn = highlightCurrentColumn;
   config.ctrlMouseWheelZoom = ctrlMouseWheelZoom;
+  config.smartKeywordHighlighting = smartKeywordHighlighting;
   config.trimTrailingWhitespaceOnSave = trimTrailingWhitespaceOnSave;
   config.ensureFinalNewlineOnSave = ensureFinalNewlineOnSave;
   config.showIndentGuides = showIndentGuides;
@@ -2150,6 +2330,7 @@ void EditorWindow::applyConfigState(const ConfigState &config) {
   highlightCurrentLine = config.highlightCurrentLine;
   highlightCurrentColumn = config.highlightCurrentColumn;
   ctrlMouseWheelZoom = config.ctrlMouseWheelZoom;
+  smartKeywordHighlighting = config.smartKeywordHighlighting;
   trimTrailingWhitespaceOnSave = config.trimTrailingWhitespaceOnSave;
   ensureFinalNewlineOnSave = config.ensureFinalNewlineOnSave;
   showIndentGuides = config.showIndentGuides;
@@ -2198,6 +2379,8 @@ void EditorWindow::loadConfigFromStore(const ConfigStore &store) {
   config.highlightCurrentLine = store.get_bool(ConfigSchema::Items::HighlightCurrentLine.key);
   config.highlightCurrentColumn = store.get_bool(ConfigSchema::Items::HighlightCurrentColumn.key);
   config.ctrlMouseWheelZoom = store.get_bool(ConfigSchema::Items::CtrlMouseWheelZoom.key);
+  config.smartKeywordHighlighting =
+      store.get_bool(ConfigSchema::Items::SmartKeywordHighlighting.key);
   config.trimTrailingWhitespaceOnSave = store.get_bool(ConfigSchema::Items::TrimTrailingWhitespaceOnSave.key);
   config.ensureFinalNewlineOnSave =
       store.get_bool(ConfigSchema::Items::EnsureFinalNewlineOnSave.key);
@@ -2250,6 +2433,8 @@ void EditorWindow::saveConfigToStore(ConfigStore &store) const {
                  config.highlightCurrentColumn);
   store.set_bool(ConfigSchema::Items::CtrlMouseWheelZoom.key,
                  config.ctrlMouseWheelZoom);
+  store.set_bool(ConfigSchema::Items::SmartKeywordHighlighting.key,
+                 config.smartKeywordHighlighting);
   store.set_bool(ConfigSchema::Items::TrimTrailingWhitespaceOnSave.key,
                  config.trimTrailingWhitespaceOnSave);
   store.set_bool(ConfigSchema::Items::EnsureFinalNewlineOnSave.key,

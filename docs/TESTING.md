@@ -55,6 +55,9 @@ Before a release, run the main editor and verify the following flow:
 - open an existing text file
 - edit and save the document
 - use find and replace
+- verify selected-keyword highlighting: normal selection follows the smart
+  highlight preference, while double-click word selection highlights matching
+  occurrences
 - switch syntax highlighting by language or file extension
 - convert encoding through the `Encoding` menu
 - close and reopen the application to confirm configuration persistence

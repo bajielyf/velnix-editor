@@ -37,19 +37,7 @@ Planned follow-up:
 - handle duplicate-open detection consistently for dropped files
 - surface clear feedback when a dropped path cannot be opened
 
-## 4. Selected-Word Occurrence Highlighting
-
-Syntax highlighting and search result highlighting are available. Automatic
-highlighting of all occurrences of the currently selected word or token is not
-included yet.
-
-Planned follow-up:
-
-- detect suitable selected words or tokens
-- highlight matching occurrences in the active document
-- avoid noisy highlighting for large files or overly broad selections
-
-## 5. Plugin Support
+## 4. Plugin Support
 
 Velnix Editor 0.1.0 does not include a plugin system. The first release keeps
 the extension boundary intentionally simple while the core editor behavior
@@ -61,7 +49,7 @@ Planned follow-up:
 - decide how plugins should be configured and packaged
 - document compatibility expectations before exposing a public plugin API
 
-## 6. End-User Documentation
+## 5. End-User Documentation
 
 The repository includes build, installation, testing, encoding, roadmap,
 third-party notice, changelog, and release documentation. A fuller end-user
@@ -73,7 +61,7 @@ Planned follow-up:
 - add troubleshooting notes for common packaging and runtime issues
 - keep release notes and user documentation aligned as features grow
 
-## 7. First-Release Validation Scope
+## 6. First-Release Validation Scope
 
 The 0.1.0 release is intended as the first public baseline. Before publishing a
 final artifact, validate the generated Debian package in a clean or disposable

@@ -63,6 +63,7 @@ void test_save_and_reload_config() {
   store.set_bool("show_whitespace", true);
   store.set_bool("show_eol_markers", true);
   store.set_bool("highlight_current_line", false);
+  store.set_bool("smart_keyword_highlighting", false);
   store.set_bool("show_indent_guides", false);
   store.set_int("long_line_column", 100);
   store.set_bool("scroll_past_last_line", false);
@@ -91,6 +92,7 @@ void test_save_and_reload_config() {
   assert(reload.get_bool("show_whitespace") == true);
   assert(reload.get_bool("show_eol_markers") == true);
   assert(reload.get_bool("highlight_current_line") == false);
+  assert(reload.get_bool("smart_keyword_highlighting") == false);
   assert(reload.get_bool("show_indent_guides") == false);
   assert(reload.get_int("long_line_column") == 100);
   assert(reload.get_bool("scroll_past_last_line") == false);

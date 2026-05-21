@@ -320,6 +320,19 @@ const ConfigItem CtrlMouseWheelZoom{
     {}
 };
 
+const ConfigItem SmartKeywordHighlighting{
+    "smart_keyword_highlighting",
+    "Enable Smart Keyword Highlighting",
+    false,
+    "Highlight matching occurrences when a word or token is selected",
+    "editor",
+    {},
+    {},
+    {},
+    {},
+    {}
+};
+
 const ConfigItem HighlightCurrentColumn{
     "highlight_current_column",
     "Show Current Column Guide",
@@ -443,6 +456,7 @@ Registry::Registry() {
       &Items::TrimTrailingWhitespaceOnSave,
       &Items::EnsureFinalNewlineOnSave,
       &Items::CtrlMouseWheelZoom,
+      &Items::SmartKeywordHighlighting,
       &Items::HighlightCurrentColumn,
       &Items::SearchWrapAround,
       &Items::SearchAllDocuments,

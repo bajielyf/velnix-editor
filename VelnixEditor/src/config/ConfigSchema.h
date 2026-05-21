@@ -80,6 +80,7 @@ extern const ConfigItem OverwriteReadonly;
 extern const ConfigItem TrimTrailingWhitespaceOnSave;
 extern const ConfigItem EnsureFinalNewlineOnSave;
 extern const ConfigItem CtrlMouseWheelZoom;
+extern const ConfigItem SmartKeywordHighlighting;
 extern const ConfigItem HighlightCurrentColumn;
 extern const ConfigItem TabSize;
 extern const ConfigItem UseSpacesForTabs;

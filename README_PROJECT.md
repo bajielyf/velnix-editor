@@ -52,6 +52,7 @@ See [docs/INSTALL.md](docs/INSTALL.md) for installation and packaging details.
 
 - GTK main window, tabbed editing, and basic file operations
 - find and replace with search result navigation
+- selected-keyword occurrence highlighting using Scintilla indicators
 - Lexilla syntax highlighting with extension-based lexer matching
 - encoding detection, encoding conversion, and EOL status display
 - macro recording, playback, and persistence

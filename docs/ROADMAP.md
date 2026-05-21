@@ -96,6 +96,10 @@ package name, executable name, and release process.
   are implemented.
 - Find-all result building runs in the background, with cancellation support.
 - Search result refresh and auto-refresh controls are implemented.
+- Selected-keyword occurrence highlighting is implemented for the active
+  document. Normal selection highlighting is controlled by the smart keyword
+  highlighting preference, which is disabled by default; double-click word
+  selection still highlights matching occurrences.
 - Lexilla is integrated for syntax highlighting.
 - Lexer list loading, language-menu switching, and extension-based matching are
   implemented.
@@ -187,9 +191,6 @@ package name, executable name, and release process.
 - Consolidate configuration schema definitions to reduce loose coupling between
   UI options and stored fields.
 - Add clearer error feedback and logging behavior.
-- Add selected-keyword highlighting: when the user selects a word or token,
-  matching occurrences throughout the current document should be highlighted,
-  similar to the selected-word highlight behavior familiar from Notepad++.
 
 ### Medium Priority
 
@@ -236,7 +237,6 @@ package name, executable name, and release process.
 ### M3: Editing Experience Expansion
 
 - Improve search responsiveness and search result workflows.
-- Add selected-keyword occurrence highlighting.
 - Improve preferences and shortcut configuration experience.
 - Add drag-and-drop file opening.
 - Add first-pass theme customization.

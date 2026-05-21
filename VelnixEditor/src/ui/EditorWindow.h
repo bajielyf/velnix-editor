@@ -93,6 +93,7 @@ public:
         bool highlightCurrentLine = true;
         bool highlightCurrentColumn = false;
         bool ctrlMouseWheelZoom = true;
+        bool smartKeywordHighlighting = false;
         bool trimTrailingWhitespaceOnSave = false;
         bool ensureFinalNewlineOnSave = false;
         bool showIndentGuides = true;
@@ -386,6 +387,7 @@ public:
     void refreshCurrentColumnHighlight(GtkWidget *scintilla = nullptr) {
         updateCurrentColumnHighlight(scintilla);
     }
+    void handleSelectedKeywordDoubleClick(int index);
     void refreshDynamicHighlights(int index, int updateFlags);
     void refreshSearchResultsAfterModification();
     void handleMacroScintillaNotification(SCNotification *notification);
@@ -425,10 +427,13 @@ private:
     bool restoreSession();
     void updateBraceHighlighting(GtkWidget *scintilla = nullptr);
     void updateCurrentColumnHighlight(GtkWidget *scintilla = nullptr);
+    void updateSelectedKeywordHighlight(GtkWidget *scintilla = nullptr);
     void updateBraceHighlightingForDocument(Document &doc, bool force,
                                             sptr_t currentPos = INVALID_POSITION);
     void updateCurrentColumnHighlightForDocument(Document &doc, bool force,
                                                  sptr_t currentPos = INVALID_POSITION);
+    void updateSelectedKeywordHighlightForDocument(Document &doc, bool force,
+                                                   bool allowWhenSmartDisabled = false);
     std::unique_ptr<EventHandler> eventHandler;
     std::unique_ptr<WindowInitializer> windowInitializer;
     std::unique_ptr<DocumentManager> documentManager;
@@ -496,6 +501,7 @@ private:
     bool showRightMarginBackground = false;
     bool highlightCurrentColumn = false;
     bool ctrlMouseWheelZoom = true;
+    bool smartKeywordHighlighting = false;
     bool trimTrailingWhitespaceOnSave = false;
     bool ensureFinalNewlineOnSave = false;
     bool columnEditorEnabled = false;

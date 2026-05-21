@@ -503,6 +503,14 @@ void SettingsManager::show_preferences_dialog() {
                                currentConfig.ctrlMouseWheelZoom);
   attach_check(editor_grid, ctrl_mouse_wheel_zoom_check, editor_row);
 
+  GtkWidget *smart_keyword_highlighting_check =
+      gtk_check_button_new_with_label(
+          Localization::text("pref.smart_keyword_highlighting"));
+  gtk_toggle_button_set_active(
+      GTK_TOGGLE_BUTTON(smart_keyword_highlighting_check),
+      currentConfig.smartKeywordHighlighting);
+  attach_check(editor_grid, smart_keyword_highlighting_check, editor_row);
+
   GtkWidget *trim_trailing_whitespace_check =
       gtk_check_button_new_with_label(
           Localization::text("pref.trim_trailing_whitespace_on_save"));
@@ -697,6 +705,8 @@ void SettingsManager::show_preferences_dialog() {
         GTK_TOGGLE_BUTTON(highlight_current_column_check));
     updatedConfig.ctrlMouseWheelZoom = gtk_toggle_button_get_active(
         GTK_TOGGLE_BUTTON(ctrl_mouse_wheel_zoom_check));
+    updatedConfig.smartKeywordHighlighting = gtk_toggle_button_get_active(
+        GTK_TOGGLE_BUTTON(smart_keyword_highlighting_check));
     updatedConfig.trimTrailingWhitespaceOnSave = gtk_toggle_button_get_active(
         GTK_TOGGLE_BUTTON(trim_trailing_whitespace_check));
     updatedConfig.ensureFinalNewlineOnSave = gtk_toggle_button_get_active(

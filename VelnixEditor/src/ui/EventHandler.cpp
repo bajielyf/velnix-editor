@@ -66,6 +66,8 @@ void EventHandler::on_scintilla_notify(ScintillaObject *sci, gint id,
     }
   } else if (notification->nmhdr.code == SCN_UPDATEUI) {
     editorWindow->refreshDynamicHighlights(index, notification->updated);
+  } else if (notification->nmhdr.code == SCN_DOUBLECLICK) {
+    editorWindow->handleSelectedKeywordDoubleClick(index);
   }
 
   // Handle macro recording

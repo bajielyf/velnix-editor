@@ -49,6 +49,10 @@ struct Document {
   sptr_t cachedBraceBadLightPosition = INVALID_POSITION;
   int cachedCurrentColumnHighlight = -1;
   bool cachedCurrentColumnHighlightEnabled = false;
+  std::string cachedSelectedKeywordHighlight;
+  sptr_t cachedSelectedKeywordDocumentLength = INVALID_POSITION;
+  bool selectedKeywordHighlightFromDoubleClick = false;
+  std::string selectedKeywordDoubleClickText;
 };
 
 struct ShortcutBinding {

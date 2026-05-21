@@ -45,7 +45,8 @@ Current demos focus on implemented editing workflows in the 0.1.0 foundation.
 
 - Native GTK interface with fast startup and low overhead
 - Multi-tab editing for text and source files
-- Find and replace, syntax highlighting, and macro recording/playback
+- Find and replace, syntax highlighting, selected-keyword occurrence
+  highlighting, and macro recording/playback
 - Encoding detection and conversion for common UTF and ANSI workflows
 - Preferences, shortcuts, recent files, and external-change prompts
 
@@ -101,7 +102,7 @@ User configuration is stored under `~/.config/velnix-editor/` by default.
 - [Known Limitations](docs/KNOWN_ISSUES.md)
 - [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md)
 - [Release Checklist](docs/RELEASE_CHECKLIST.md)
-- [Release Notes 0.1.0](docs/RELEASE_NOTES_0.1.0.md)
+- [Release Notes 0.1.0](docs/RELEASE_NOTES_0.1.0.md) - historical release snapshot
 - [Roadmap](docs/ROADMAP.md)
 
 ## License
