@@ -109,3 +109,6 @@ User configuration is stored under `~/.config/velnix-editor/` by default.
 Velnix Editor is distributed under the GNU General Public License version 3.
 See [LICENSE](LICENSE) and [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md)
 for details.
+
+The Velnix Editor name, logo, and application icon are protected project brand
+assets. See [TRADEMARKS.md](TRADEMARKS.md) for permitted use.

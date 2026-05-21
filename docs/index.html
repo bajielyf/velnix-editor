@@ -5,41 +5,104 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Velnix Editor - Lightweight Native Text Editor for Linux</title>
+<title>Velnix Editor - Free Open Source Linux Text Editor</title>
 
 <meta name="description"
-      content="Velnix Editor is a lightweight native text editor for Linux developers. Fast startup, low memory usage, syntax highlighting, session restore, macros, and practical editing workflows.">
+      content="Velnix Editor is a free and open source lightweight native Linux text editor for notes, logs, configuration files, Markdown, and source code. Fast startup, syntax highlighting, session restore, and macros.">
 
 <meta name="keywords"
-      content="linux text editor, lightweight editor, native editor, gtk editor, scintilla editor, source code editor, notepad++ alternative linux, fast text editor">
+      content="free linux text editor, open source text editor, linux text editor, lightweight editor, native editor, source code editor, notepad++ alternative linux, fast text editor">
 
-<meta name="author" content="Velnix Editor">
+<meta name="author" content="bajielyf">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0f1115">
+<meta name="application-name" content="Velnix Editor">
 
 <meta property="og:title"
-      content="Velnix Editor">
+      content="Velnix Editor - Free Open Source Linux Text Editor">
 
 <meta property="og:description"
-      content="Fast. Native. Practical. A lightweight Linux text editor for developers.">
+      content="Fast. Native. Practical. A free and open source Linux text editor for everyday notes, logs, configuration files, Markdown, and source code.">
 
 <meta property="og:type"
       content="website">
 
+<meta property="og:locale"
+      content="en_US">
+
+<meta property="og:site_name"
+      content="Velnix Editor">
+
 <meta property="og:image"
-      content="assets/main-window.png">
+      content="https://bajielyf.github.io/velnix-editor/assets/main-window.png">
+
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1028">
+<meta property="og:image:height" content="766">
+<meta property="og:image:alt" content="Velnix Editor main window on Linux">
 
 <meta property="og:url"
       content="https://bajielyf.github.io/velnix-editor/">
 
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title"
+      content="Velnix Editor - Free Open Source Linux Text Editor">
+<meta name="twitter:description"
+      content="A free and open source Linux text editor with syntax highlighting, session restore, macros, and practical everyday editing workflows.">
+<meta name="twitter:image"
+      content="https://bajielyf.github.io/velnix-editor/assets/main-window.png">
+<meta name="twitter:image:alt" content="Velnix Editor main window on Linux">
+
 <link rel="canonical"
       href="https://bajielyf.github.io/velnix-editor/">
+<link rel="icon" type="image/png" href="assets/logo-app.png">
+<link rel="apple-touch-icon" href="assets/logo-app.png">
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Velnix Editor",
+    "description": "A free and open source lightweight native Linux text editor for notes, logs, configuration files, Markdown, source code, and everyday editing workflows.",
+    "url": "https://bajielyf.github.io/velnix-editor/",
+    "image": "https://bajielyf.github.io/velnix-editor/assets/main-window.png",
+    "thumbnailUrl": "https://bajielyf.github.io/velnix-editor/assets/logo-about.png",
+    "inLanguage": "en",
+    "isAccessibleForFree": true,
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Linux",
+    "softwareVersion": "0.1.0",
+    "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+    "codeRepository": "https://github.com/bajielyf/velnix-editor",
+    "downloadUrl": "https://github.com/bajielyf/velnix-editor/releases",
+    "sameAs": [
+        "https://github.com/bajielyf/velnix-editor"
+    ],
+    "author": {
+        "@type": "Person",
+        "name": "bajielyf",
+        "email": "mailto:bajielyf@gmail.com",
+        "url": "https://github.com/bajielyf"
+    },
+    "programmingLanguage": ["C++"],
+    "screenshot": "https://bajielyf.github.io/velnix-editor/assets/main-window.png",
+    "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+    }
+}
+</script>
 
 <style>
 
 :root {
     --bg: #0f1115;
     --panel: #171a21;
-    --text: #e8e8e8;
-    --sub: #9ca3af;
+    --text: #e7ebf0;
+    --heading: #f7f9fc;
+    --sub: #aeb6c3;
+    --muted: #cfd6df;
     --border: #2c3442;
     --accent: #5aa9ff;
 }
@@ -53,6 +116,7 @@ body {
     background: var(--bg);
     color: var(--text);
     font-family: Inter, system-ui, sans-serif;
+    font-size: 18px;
     line-height: 1.75;
 }
 
@@ -64,12 +128,29 @@ body {
 header {
     padding: 100px 0 80px;
     border-bottom: 1px solid var(--border);
+    text-align: center;
 }
 
-.logo {
+.brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+h1.logo {
     font-size: 52px;
     font-weight: 800;
     letter-spacing: -2px;
+    line-height: 1.1;
+    margin: 0;
+    color: var(--heading);
+}
+
+.brand-mark {
+    width: 86px;
+    height: 86px;
+    display: block;
 }
 
 .tagline {
@@ -77,16 +158,39 @@ header {
     font-size: 24px;
     color: var(--sub);
     max-width: 780px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .description {
     margin-top: 24px;
     max-width: 840px;
-    color: #cfd4dc;
+    font-size: 20px;
+    color: var(--muted);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.note {
+    margin-top: 18px;
+    color: var(--sub);
+    font-weight: 700;
+}
+
+.text-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 22px;
+    margin-top: 26px;
+}
+
+.text-links a {
+    font-weight: 700;
 }
 
 .actions {
     display: flex;
+    justify-content: center;
     gap: 16px;
     margin-top: 40px;
     flex-wrap: wrap;
@@ -127,6 +231,7 @@ section {
 .section-title {
     font-size: 34px;
     margin-bottom: 28px;
+    color: var(--heading);
 }
 
 .features {
@@ -145,9 +250,11 @@ section {
 .card h3 {
     margin-top: 0;
     font-size: 22px;
+    color: var(--heading);
 }
 
 .card p {
+    font-size: 17px;
     color: var(--sub);
 }
 
@@ -160,6 +267,7 @@ section {
 
 .hero-image img {
     width: 100%;
+    height: auto;
     display: block;
 }
 
@@ -178,28 +286,21 @@ section {
 
 .demo-card img {
     width: 100%;
+    height: auto;
     display: block;
 }
 
 .demo-card h3 {
     margin: 18px;
     margin-bottom: 8px;
+    color: var(--heading);
 }
 
 .demo-card p {
     margin: 18px;
     margin-top: 0;
+    font-size: 17px;
     color: var(--sub);
-}
-
-pre {
-    background: #11151d;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    color: #d1d5db;
 }
 
 footer {
@@ -215,12 +316,29 @@ a {
 
 @media (max-width: 700px) {
 
-    .logo {
+    body {
+        font-size: 17px;
+    }
+
+    h1.logo {
         font-size: 40px;
+    }
+
+    .brand {
+        gap: 14px;
+    }
+
+    .brand-mark {
+        width: 64px;
+        height: 64px;
     }
 
     .tagline {
         font-size: 20px;
+    }
+
+    .description {
+        font-size: 18px;
     }
 
 }
@@ -233,16 +351,28 @@ a {
 <header>
 <div class="container">
 
-    <div class="logo">Velnix Editor</div>
+    <div class="brand">
+        <img class="brand-mark"
+             src="assets/logo-about.png"
+             width="500"
+             height="500"
+             alt="Velnix Editor logo">
+
+        <h1 class="logo">Velnix Editor</h1>
+    </div>
 
     <div class="tagline">
         Fast. Native. Practical.
     </div>
 
     <div class="description">
-        Velnix Editor is a lightweight native text editor for Linux developers.
-        Built with GTK, Scintilla, and Lexilla, it focuses on fast startup,
-        low resource usage, and practical editing workflows for text and source code.
+        Velnix Editor is a lightweight native text editor for Linux.
+        It opens quickly, stays responsive, and gives you practical tools
+        for editing notes, logs, configuration files, Markdown, and source code.
+    </div>
+
+    <div class="note">
+        Free and open source. Built for everyday Linux text editing.
     </div>
 
     <div class="actions">
@@ -254,14 +384,16 @@ a {
 
         <a class="button secondary"
            href="https://github.com/bajielyf/velnix-editor">
-            GitHub
+            Project
         </a>
 
     </div>
 
     <div class="hero-image">
         <img src="assets/main-window.png"
-             alt="Velnix Editor main window">
+             width="1028"
+             height="766"
+             alt="Velnix Editor main window on Linux">
     </div>
 
 </div>
@@ -286,7 +418,7 @@ a {
         <div class="card">
             <h3>📄 Large File Editing</h3>
             <p>
-                Designed for comfortable editing of logs, notes, and source files.
+                Comfortable editing for logs, notes, configuration files, and code.
             </p>
         </div>
 
@@ -300,7 +432,7 @@ a {
         <div class="card">
             <h3>🧠 Practical Workflows</h3>
             <p>
-                Macros, syntax highlighting, find/replace, encoding conversion, and more.
+                Find and replace, syntax highlighting, macros, encoding conversion, and more.
             </p>
         </div>
 
@@ -313,41 +445,56 @@ a {
 <div class="container">
 
     <h2 class="section-title">
-        Feature Demos
+        See It in Action
     </h2>
 
     <div class="demo-grid">
 
         <div class="demo-card">
             <img src="assets/demo/startup-speed.gif"
+                 width="1280"
+                 height="954"
+                 loading="lazy"
                  alt="Fast startup demo">
             <h3>Fast Startup</h3>
-            <p>Quick launch experience optimized for daily editing.</p>
+            <p>Launch quickly and get straight back to editing.</p>
         </div>
 
         <div class="demo-card">
             <img src="assets/demo/open-file.gif"
+                 width="1280"
+                 height="954"
+                 loading="lazy"
                  alt="Open file demo">
             <h3>Opening Files</h3>
-            <p>Open and switch between files efficiently.</p>
+            <p>Open files and switch between tabs without friction.</p>
         </div>
 
         <div class="demo-card">
             <img src="assets/demo/editing-experience.gif"
+                 width="1280"
+                 height="954"
+                 loading="lazy"
                  alt="Editing demo">
             <h3>Editing Basics</h3>
-            <p>Comfortable text editing with native responsiveness.</p>
+            <p>Simple, responsive editing for everyday text work.</p>
         </div>
 
         <div class="demo-card">
             <img src="assets/demo/session-restore.gif"
+                 width="1280"
+                 height="954"
+                 loading="lazy"
                  alt="Session restore demo">
             <h3>Session Restore</h3>
-            <p>Recover previous sessions and unsaved work automatically.</p>
+            <p>Pick up where you left off after reopening the app.</p>
         </div>
 
         <div class="demo-card">
             <img src="assets/demo/macros.gif"
+                 width="1280"
+                 height="954"
+                 loading="lazy"
                  alt="Macro demo">
             <h3>Macros</h3>
             <p>Record and replay repetitive editing actions.</p>
@@ -355,9 +502,12 @@ a {
 
         <div class="demo-card">
             <img src="assets/demo/markdown.gif"
+                 width="1280"
+                 height="954"
+                 loading="lazy"
                  alt="Markdown syntax highlighting demo">
             <h3>Markdown Highlighting</h3>
-            <p>Built-in syntax highlighting powered by Lexilla.</p>
+            <p>Keep Markdown documents easier to read while editing.</p>
         </div>
 
     </div>
@@ -369,14 +519,20 @@ a {
 <div class="container">
 
     <h2 class="section-title">
-        Build From Source
+        Everyday Editing
     </h2>
 
-<pre>
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j4
-./build/VelnixEditor/velnix-editor
-</pre>
+    <p>
+        Velnix Editor is made for people who want a capable editor
+        without the weight of a full IDE. It keeps the common editing loop
+        simple: open quickly, edit comfortably, search confidently,
+        save safely, and keep moving.
+    </p>
+
+    <p>
+        It is a good fit for quick source-code changes, Markdown notes,
+        config edits, logs, scripts, and other everyday Linux text files.
+    </p>
 
 </div>
 </section>
@@ -385,23 +541,27 @@ cmake --build build -j4
 <div class="container">
 
     <h2 class="section-title">
-        Philosophy
+        Open Source
     </h2>
 
     <p>
-        Velnix Editor is not trying to become a heavy IDE.
-        It focuses on the daily editing loop:
-        open quickly, edit comfortably, search confidently,
-        save safely, and stay out of the way.
+        Velnix Editor is free software released under the GNU GPLv3.
+        The project source code is public, and users can review the code,
+        report issues, follow releases, or build their own copy.
+        The project name, logo, and application icon are protected brand assets.
     </p>
 
     <p>
-        The goal is to provide a middle ground between minimal editors
-        and full development environments:
-        lightweight but capable,
-        native but modern,
-        practical without unnecessary complexity.
+        For project questions or feedback, contact the author at
+        <a href="mailto:bajielyf@gmail.com">bajielyf@gmail.com</a>.
     </p>
+
+    <div class="text-links">
+        <a href="https://github.com/bajielyf/velnix-editor">Project repository</a>
+        <a href="https://github.com/bajielyf/velnix-editor/issues">Report an issue</a>
+        <a href="https://github.com/bajielyf/velnix-editor/releases">Release downloads</a>
+        <a href="https://github.com/bajielyf/velnix-editor/blob/main/TRADEMARKS.md">Brand use</a>
+    </div>
 
 </div>
 </section>
@@ -409,7 +569,7 @@ cmake --build build -j4
 <footer>
 <div class="container">
 
-    © 2026 Velnix Editor
+    © 2026 Velnix Editor · Free and open source under GPLv3 · Name and logos protected
 
 </div>
 </footer>
