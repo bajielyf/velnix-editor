@@ -52,6 +52,7 @@ Default behavior:
 - builds in `Release` mode
 - stages the install tree under `build/deb-root/`
 - writes the final `.deb` package to `dist/`
+- writes `dist/SHA256SUMS` for the generated package
 
 Version note: the packaging script reads the top-level CMake project version.
 The top-level `CMakeLists.txt` is the release version source. The application

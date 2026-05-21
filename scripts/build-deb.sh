@@ -54,6 +54,19 @@ detect_shlib_depends() {
     printf '%s\n' "${depends}"
 }
 
+sha256_file() {
+    local path="$1"
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "${path}"
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "${path}"
+    else
+        echo "error: required tool not found: sha256sum or shasum" >&2
+        exit 1
+    fi
+}
+
 if [[ -z "${VERSION}" ]]; then
     VERSION="$(cmake_project_version)"
 fi
@@ -127,6 +140,13 @@ find "${PKG_ROOT}/usr" -type f -exec chmod 0644 {} +
 chmod 0755 "${PKG_ROOT}/usr/bin/velnix-editor"
 
 DEB_PATH="${OUT_DIR}/${PACKAGE_NAME}_${VERSION}_${ARCH}.deb"
+SHA256SUMS_PATH="${OUT_DIR}/SHA256SUMS"
 dpkg-deb --build --root-owner-group "${PKG_ROOT}" "${DEB_PATH}"
 
+(
+    cd "${OUT_DIR}"
+    sha256_file "$(basename "${DEB_PATH}")" > "$(basename "${SHA256SUMS_PATH}")"
+)
+
 echo "${DEB_PATH}"
+echo "${SHA256SUMS_PATH}"
