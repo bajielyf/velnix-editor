@@ -699,20 +699,14 @@ void ShortcutManager::load_shortcuts() {
   auto &shortcutBindings = editorWindow->getShortcutBindings();
   std::string shortcutsPath = get_shortcuts_file_path();
   std::ifstream input(shortcutsPath);
-  if (!input) {
-    std::ifstream legacyInput(legacy_shortcuts_path(shortcutsPath));
-    if (!legacyInput) {
-      save_shortcuts();
-      return;
-    }
-  }
-
   std::map<std::string, std::string> storedShortcuts;
   if (input) {
     storedShortcuts = read_shortcuts_json(input);
   } else {
     std::ifstream legacyInput(legacy_shortcuts_path(shortcutsPath));
-    storedShortcuts = read_legacy_shortcuts_ini(legacyInput);
+    if (legacyInput) {
+      storedShortcuts = read_legacy_shortcuts_ini(legacyInput);
+    }
   }
 
   std::vector<std::vector<guint>> resolvedKeys;
