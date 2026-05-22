@@ -2,6 +2,16 @@
 
 All notable project-level changes intended for published releases should be recorded in this file.
 
+## [0.1.2] - unreleased
+
+### Added
+
+- Added optional command-line file arguments, opening provided files after any restored session tabs.
+
+### Fixed
+
+- Fixed the issue where the shortcut key was invalid when opening the software for the first time after installing the package.
+
 ## [0.1.1] - 2026-05-22
 
 Patch release focused on selected-keyword occurrence highlighting.

@@ -37,6 +37,8 @@ package name, executable name, and release process.
 - Debian package name defaults to `velnix-editor`.
 - Generated and installed binary name is `velnix-editor`.
 - Desktop entry launches `velnix-editor %F`.
+- Terminal launches support optional file arguments through
+  `velnix-editor [file ...]`.
 - Public documentation now describes the project as an independent Velnix
   Editor release effort.
 
@@ -66,6 +68,7 @@ package name, executable name, and release process.
 - Document creation, open, save, save as, and close are implemented.
 - Blank document reuse is implemented.
 - Path normalization and duplicate-open prevention by path are implemented.
+- Optional command-line file arguments open after any restored session tabs.
 - Document modification tracking is implemented.
 - Missing files, inaccessible files, and externally modified files are detected.
 - File state refresh runs on focus changes and through periodic checks.
@@ -174,6 +177,8 @@ package name, executable name, and release process.
 - Verify desktop entry launch, basic editing, save/reload, search/replace,
   syntax highlighting, encoding conversion, preferences, shortcuts, and recent
   file behavior.
+- Verify terminal launch both without arguments and with multiple file
+  arguments, including the restored-session-then-arguments tab order.
 
 ### 4. Product Polish for Release
 

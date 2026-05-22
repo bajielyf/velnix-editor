@@ -51,6 +51,8 @@ added later, update this document and the release checklist at the same time.
 Before a release, run the main editor and verify the following flow:
 
 - launch `./build/VelnixEditor/velnix-editor`
+- launch `./build/VelnixEditor/velnix-editor file1.txt file2.txt` and confirm
+  restored session tabs remain first, followed by both files in separate tabs
 - create a new document
 - open an existing text file
 - edit and save the document

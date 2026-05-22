@@ -33,6 +33,7 @@ Use this checklist when preparing a Velnix Editor release.
 - [ ] Encoding display and encoding conversion
 - [ ] Recent files, preferences, and shortcut configuration
 - [ ] Session restore
+- [ ] Optional command-line file arguments append after restored session tabs
 - [ ] Macro recording, playback, and management
 - [ ] External file modification detection and reload
 

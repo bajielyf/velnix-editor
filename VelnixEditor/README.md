@@ -14,6 +14,13 @@
 
 The module builds the `velnix-editor` executable.
 
+The executable can be started without arguments, or with optional file paths to
+open after any restored session tabs:
+
+```bash
+velnix-editor [file ...]
+```
+
 ## Default Config Path
 
 Configuration files are stored in `~/.config/velnix-editor/` unless a custom

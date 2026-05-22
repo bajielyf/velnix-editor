@@ -75,10 +75,11 @@ Velnix Editor aims to stay in the middle ground:
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j4
-./build/VelnixEditor/velnix-editor
+./build/VelnixEditor/velnix-editor [file ...]
 ```
 
-The executable is generated under `build/VelnixEditor/`.
+The executable is generated under `build/VelnixEditor/`. File arguments are
+optional; when provided, they are opened after any restored session tabs.
 
 ## Package
 

@@ -621,7 +621,7 @@ gboolean on_auto_save_timeout(gpointer data) {
 
 }  // namespace
 
-EditorWindow::EditorWindow() {
+EditorWindow::EditorWindow(const std::vector<std::string> &startupFiles) {
   currentDocumentIndex = -1;
   eventHandler = std::make_unique<EventHandler>(this);
   windowInitializer = std::make_unique<WindowInitializer>(this);
@@ -631,9 +631,17 @@ EditorWindow::EditorWindow() {
   macroManager = std::make_unique<MacroManager>(this);
   windowInitializer->initialize();
   settingsManager->load_settings();
+
   if (!restoreSession()) {
     documentManager->createNewDocument();
   }
+
+  if (!startupFiles.empty()) {
+    for (const std::string &path : startupFiles) {
+      open_document_path(path);
+    }
+  }
+
   setLineWrapMode(lineWrapMode);
   setEditorFont(fontFamily, fontSize);
   update_window_title();

@@ -29,8 +29,11 @@ After the build completes, the main executable is available at:
 Run the application directly:
 
 ```bash
-./build/VelnixEditor/velnix-editor
+./build/VelnixEditor/velnix-editor [file ...]
 ```
+
+File arguments are optional. When one or more paths are provided, Velnix Editor
+opens them after any tabs restored from the previous session.
 
 Default user configuration directory:
 

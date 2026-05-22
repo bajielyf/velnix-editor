@@ -103,7 +103,7 @@ public:
         bool showRightMarginBackground = false;
     };
 
-    EditorWindow();
+    explicit EditorWindow(const std::vector<std::string> &startupFiles = {});
     ~EditorWindow();
 
     void show();
