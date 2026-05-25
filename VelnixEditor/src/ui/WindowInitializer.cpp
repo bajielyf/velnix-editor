@@ -342,6 +342,7 @@ EditorWindow::WindowComponents WindowInitializer::createWindowComponents() {
   g_signal_connect(components.window, "window-state-event",
                    G_CALLBACK(EventHandler::on_window_state_event),
                    editorWindow);
+  EventHandler::enable_file_drop_target(components.window, editorWindow);
 
   components.menubar = gtk_menu_bar_new();
 
@@ -354,9 +355,12 @@ EditorWindow::WindowComponents WindowInitializer::createWindowComponents() {
   g_signal_connect(components.notebook, "page-reordered",
                    G_CALLBACK(EventHandler::on_notebook_page_reordered),
                    editorWindow);
+  EventHandler::enable_file_drop_target(components.notebook, editorWindow);
 
   components.vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   components.editorPane = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+  EventHandler::enable_file_drop_target(components.vbox, editorWindow);
+  EventHandler::enable_file_drop_target(components.editorPane, editorWindow);
   components.searchResultsPanel = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   components.recentMenu = gtk_menu_new();
   components.statusBar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);

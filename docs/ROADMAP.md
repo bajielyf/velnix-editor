@@ -5,7 +5,7 @@
 This roadmap tracks the current state of Velnix Editor, the remaining work
 before the next release, and the likely direction after that release.
 
-Last updated: 2026-05-22
+Last updated: 2026-05-23
 
 ## Current Positioning
 
@@ -69,6 +69,8 @@ package name, executable name, and release process.
 - Blank document reuse is implemented.
 - Path normalization and duplicate-open prevention by path are implemented.
 - Optional command-line file arguments open after any restored session tabs.
+- Drag-and-drop file opening is implemented for the main window, tab area, and
+  editor surface.
 - Document modification tracking is implemented.
 - Missing files, inaccessible files, and externally modified files are detected.
 - File state refresh runs on focus changes and through periodic checks.
@@ -198,7 +200,6 @@ package name, executable name, and release process.
 
 ### Medium Priority
 
-- Add drag-and-drop file opening for the main window and tab area.
 - Continue improving syntax highlighting configuration. Global syntax
   highlighting toggle and default lexer selection are already implemented; the
   default lexer currently applies only to new documents.
@@ -242,7 +243,6 @@ package name, executable name, and release process.
 
 - Improve search responsiveness and search result workflows.
 - Improve preferences and shortcut configuration experience.
-- Add drag-and-drop file opening.
 - Add first-pass theme customization.
 - Add more complete editing behavior controls.
 

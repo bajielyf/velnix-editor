@@ -361,6 +361,8 @@ int DocumentOperations::createNewDocument(const std::string &title) {
   doc.tabLabel = hbox;
   doc.tabTextLabel = label;
   doc.closeButton = closeButton;
+  EventHandler::enable_file_drop_target(hbox, this->editorWindow);
+  EventHandler::enable_file_drop_target(label, this->editorWindow);
 
   // Connect close button signal
   g_signal_connect(closeButton, "clicked", G_CALLBACK(EventHandler::on_tab_close_clicked),
@@ -382,6 +384,7 @@ int DocumentOperations::createNewDocument(const std::string &title) {
                                          GDK_BUTTON_RELEASE_MASK |
                                          GDK_POINTER_MOTION_MASK |
                                          GDK_SCROLL_MASK);
+  EventHandler::enable_file_drop_target(doc.scintilla, this->editorWindow);
 
   scintilla_send_message(SCINTILLA(doc.scintilla), SCI_SETCODEPAGE, SC_CP_UTF8,
                          0);

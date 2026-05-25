@@ -25,6 +25,10 @@ public:
     static gboolean on_window_focus_in_event(GtkWidget *widget, GdkEvent *event, gpointer data);
     static gboolean on_window_key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer data);
     static gboolean on_window_state_event(GtkWidget *widget, GdkEventWindowState *event, gpointer data);
+    static void enable_file_drop_target(GtkWidget *widget, EditorWindow *editorWindow);
+    static void on_file_drop_received(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
+                                      GtkSelectionData *selectionData, guint info, guint time,
+                                      gpointer data);
     static gboolean on_periodic_file_state_refresh(gpointer data);
     static void on_new_activate(GtkWidget *widget, gpointer data);
     static void on_open_activate(GtkWidget *widget, gpointer data);

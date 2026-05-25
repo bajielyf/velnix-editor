@@ -188,6 +188,61 @@ gboolean EventHandler::on_window_state_event(GtkWidget *widget,
   return FALSE;
 }
 
+void EventHandler::enable_file_drop_target(GtkWidget *widget,
+                                           EditorWindow *editorWindow) {
+  if (!widget || !editorWindow) {
+    return;
+  }
+
+  static gchar textUriListTarget[] = "text/uri-list";
+  static GtkTargetEntry targets[] = {{textUriListTarget, 0, 0}};
+
+  gtk_drag_dest_set(widget, GTK_DEST_DEFAULT_ALL, targets,
+                    G_N_ELEMENTS(targets), GDK_ACTION_COPY);
+  g_signal_connect(widget, "drag-data-received",
+                   G_CALLBACK(EventHandler::on_file_drop_received),
+                   editorWindow);
+}
+
+void EventHandler::on_file_drop_received(GtkWidget *widget,
+                                         GdkDragContext *context, gint x,
+                                         gint y,
+                                         GtkSelectionData *selectionData,
+                                         guint info, guint time,
+                                         gpointer data) {
+  (void)widget;
+  (void)x;
+  (void)y;
+  (void)info;
+  EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
+  if (!editorWindow || !selectionData) {
+    gtk_drag_finish(context, FALSE, FALSE, time);
+    return;
+  }
+
+  gchar **uris = gtk_selection_data_get_uris(selectionData);
+  if (!uris) {
+    gtk_drag_finish(context, FALSE, FALSE, time);
+    return;
+  }
+
+  bool openedAny = false;
+  for (gchar **uri = uris; *uri; ++uri) {
+    GError *error = nullptr;
+    gchar *filename = g_filename_from_uri(*uri, nullptr, &error);
+    if (filename) {
+      openedAny = editorWindow->openDocumentPath(filename) || openedAny;
+      g_free(filename);
+    }
+    if (error) {
+      g_error_free(error);
+    }
+  }
+
+  g_strfreev(uris);
+  gtk_drag_finish(context, openedAny ? TRUE : FALSE, FALSE, time);
+}
+
 gboolean EventHandler::on_periodic_file_state_refresh(gpointer data) {
   EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
   editorWindow->refreshDocumentStatesFromWorkspace(false);
