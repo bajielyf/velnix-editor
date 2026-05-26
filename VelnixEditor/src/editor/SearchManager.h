@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/EditorTypes.h"
+
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <pango/pango.h>
@@ -32,6 +34,7 @@ public:
                        bool whole_word = false, bool regex = false);
     void find_all(const std::string &pattern, bool case_sensitive = false,
                   bool whole_word = false, bool regex = false);
+    void find_all_batch(const std::vector<MacroSearchRequest> &requests);
     void replace_next(const std::string &find_pattern, const std::string &replace_text,
                       bool case_sensitive = false, bool whole_word = false, bool regex = false);
     void replace_all(const std::string &find_pattern, const std::string &replace_text,
@@ -87,6 +90,7 @@ private:
         int currentDocumentIndex = -1;
         bool clearExisting = false;
         bool expandNewGroup = true;
+        bool appendResults = false;
         std::vector<SearchQuery> queries;
         std::set<std::string> expandedGroups;
         std::vector<SearchDocumentSnapshot> documents;
@@ -96,6 +100,7 @@ private:
         guint requestId = 0;
         bool clearExisting = false;
         bool expandNewGroup = true;
+        bool appendResults = false;
         bool cancelled = false;
         std::vector<SearchGroupResultData> groups;
         std::set<std::string> expandedGroups;
@@ -181,10 +186,13 @@ private:
     static std::string file_group_key(const SearchQuery &query, int docIndex);
     std::vector<SearchDocumentSnapshot> snapshot_search_documents(bool search_all_docs) const;
     void start_async_search(const std::vector<SearchQuery> &queries, bool clear_existing,
-                            bool expand_new_group, const std::set<std::string> &expanded_groups = {});
+                            bool expand_new_group,
+                            const std::set<std::string> &expanded_groups = {},
+                            bool append_results = false);
     void cancel_active_async_search();
     void apply_search_group_result(const SearchGroupResultData &group, GtkTreeStore *store,
-                                   GtkWidget *status_label, bool expand_new_group);
+                                   GtkWidget *status_label, bool expand_new_group,
+                                   bool append_result);
     void apply_async_search_response(const AsyncSearchResponse &response);
     void set_search_in_progress_state(bool in_progress, const std::string &status_message = "");
     static std::vector<std::pair<size_t, size_t>> find_pattern_matches(

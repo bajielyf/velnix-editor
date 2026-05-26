@@ -412,6 +412,7 @@ public:
                                    bool caseSensitive,
                                    bool wholeWord,
                                    bool regex);
+    bool executeMacroFindAllBatch(const std::vector<MacroSearchRequest> &requests);
     void showFindDialog();
     void showReplaceDialog();
     void showGoToLineDialog();

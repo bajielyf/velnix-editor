@@ -216,6 +216,38 @@ void SearchManager::find_all(const std::string &pattern, bool case_sensitive,
     start_async_search({query}, false, true);
 }
 
+void SearchManager::find_all_batch(const std::vector<MacroSearchRequest> &requests) {
+    if (requests.empty()) {
+        return;
+    }
+
+    bool search_all_docs = search_all_docs_check && gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(search_all_docs_check));
+    last_search_all_documents = search_all_docs;
+
+    std::vector<SearchQuery> queries;
+    queries.reserve(requests.size());
+    for (const MacroSearchRequest &request : requests) {
+        if (request.findPattern.empty()) {
+            continue;
+        }
+
+        SearchQuery query;
+        query.pattern = request.findPattern;
+        query.caseSensitive = request.caseSensitive;
+        query.wholeWord = request.wholeWord;
+        query.regex = request.regex;
+        query.searchAllDocuments = search_all_docs;
+        queries.push_back(query);
+
+        last_search_pattern = query.pattern;
+        last_search_case_sensitive = query.caseSensitive;
+        last_search_whole_word = query.wholeWord;
+        last_search_regex = query.regex;
+    }
+
+    start_async_search(queries, false, true, {}, true);
+}
+
 void SearchManager::replace_next(const std::string &find_pattern, const std::string &replace_text,
                                  bool case_sensitive, bool whole_word, bool regex) {
     if (editorWindow) {
@@ -836,7 +868,8 @@ void SearchManager::set_search_in_progress_state(bool in_progress, const std::st
 
 void SearchManager::start_async_search(const std::vector<SearchQuery> &queries, bool clear_existing,
                                        bool expand_new_group,
-                                       const std::set<std::string> &expanded_groups) {
+                                       const std::set<std::string> &expanded_groups,
+                                       bool append_results) {
     cancel_active_async_search();
 
     if (!find_results_store || !find_results_status_label) {
@@ -855,6 +888,7 @@ void SearchManager::start_async_search(const std::vector<SearchQuery> &queries, 
     request->currentDocumentIndex = editorWindow ? editorWindow->getCurrentDocumentIndex() : -1;
     request->clearExisting = clear_existing;
     request->expandNewGroup = expand_new_group;
+    request->appendResults = append_results;
     request->queries = queries;
     request->expandedGroups = expanded_groups;
 
@@ -1075,6 +1109,7 @@ void SearchManager::run_async_search_task(GTask *task, gpointer source_object,
     response->requestId = request->requestId;
     response->clearExisting = request->clearExisting;
     response->expandNewGroup = request->expandNewGroup;
+    response->appendResults = request->appendResults;
     response->expandedGroups = request->expandedGroups;
 
     for (const SearchQuery &query : request->queries) {
@@ -1108,13 +1143,18 @@ void SearchManager::run_async_search_task(GTask *task, gpointer source_object,
 }
 
 void SearchManager::apply_search_group_result(const SearchGroupResultData &group, GtkTreeStore *store,
-                                              GtkWidget *status_label, bool expand_new_group) {
+                                              GtkWidget *status_label, bool expand_new_group,
+                                              bool append_result) {
     if (!store || !status_label) {
         return;
     }
 
     GtkTreeIter search_iter;
-    gtk_tree_store_prepend(store, &search_iter, nullptr);
+    if (append_result) {
+        gtk_tree_store_append(store, &search_iter, nullptr);
+    } else {
+        gtk_tree_store_prepend(store, &search_iter, nullptr);
+    }
     gtk_tree_store_set(store, &search_iter,
                        SearchResultFile, group.query.pattern.c_str(),
                        SearchResultText, "",
@@ -1228,9 +1268,18 @@ void SearchManager::apply_async_search_response(const AsyncSearchResponse &respo
         gtk_tree_store_clear(find_results_store);
     }
 
-    for (auto group = response.groups.rbegin(); group != response.groups.rend(); ++group) {
-        apply_search_group_result(*group, find_results_store, find_results_status_label,
-                                  response.expandNewGroup);
+    if (response.appendResults) {
+        for (const SearchGroupResultData &group : response.groups) {
+            apply_search_group_result(group, find_results_store,
+                                      find_results_status_label,
+                                      response.expandNewGroup, true);
+        }
+    } else {
+        for (auto group = response.groups.rbegin(); group != response.groups.rend(); ++group) {
+            apply_search_group_result(*group, find_results_store,
+                                      find_results_status_label,
+                                      response.expandNewGroup, false);
+        }
     }
 
     if (!response.expandedGroups.empty()) {

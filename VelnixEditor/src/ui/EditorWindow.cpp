@@ -1170,6 +1170,16 @@ bool EditorWindow::executeMacroSearchCommand(MacroAppCommand command,
   return false;
 }
 
+bool EditorWindow::executeMacroFindAllBatch(
+    const std::vector<MacroSearchRequest> &requests) {
+  if (!searchManager || requests.empty()) {
+    return false;
+  }
+
+  searchManager->find_all_batch(requests);
+  return true;
+}
+
 void EditorWindow::showFindDialog() {
   if (searchManager) {
     searchManager->show_find_dialog();

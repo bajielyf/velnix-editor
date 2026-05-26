@@ -96,6 +96,14 @@ enum class MacroAppCommand {
   ReplaceAll
 };
 
+struct MacroSearchRequest {
+  std::string findPattern;
+  std::string replaceText;
+  bool caseSensitive = false;
+  bool wholeWord = false;
+  bool regex = false;
+};
+
 struct RecordedMacroStep {
   int message = 0;
   uptr_t wParameter = 0;

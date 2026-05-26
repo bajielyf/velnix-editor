@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <sstream>
 #include <algorithm>
+#include <cctype>
 
 namespace {
 
@@ -28,12 +29,82 @@ bool message_uses_string_parameter(int message) {
 }
 
 void write_quoted_field(std::ostream& output, const std::string& value) {
-  output << std::quoted(value);
+  output << '"';
+  for (char ch : value) {
+    switch (ch) {
+      case '\\':
+        output << "\\\\";
+        break;
+      case '"':
+        output << "\\\"";
+        break;
+      case '\n':
+        output << "\\n";
+        break;
+      case '\r':
+        output << "\\r";
+        break;
+      case '\t':
+        output << "\\t";
+        break;
+      default:
+        output << ch;
+        break;
+    }
+  }
+  output << '"';
 }
 
-bool read_quoted_field(std::istringstream& input, std::string& value) {
-  input >> std::quoted(value);
-  return !input.fail();
+bool read_quoted_field(std::istream& input, std::string& value) {
+  value.clear();
+
+  char ch = '\0';
+  while (input.get(ch)) {
+    if (!std::isspace(static_cast<unsigned char>(ch))) {
+      break;
+    }
+  }
+
+  if (!input || ch != '"') {
+    input.setstate(std::ios::failbit);
+    return false;
+  }
+
+  bool escaped = false;
+  while (input.get(ch)) {
+    if (escaped) {
+      switch (ch) {
+        case 'n':
+          value.push_back('\n');
+          break;
+        case 'r':
+          value.push_back('\r');
+          break;
+        case 't':
+          value.push_back('\t');
+          break;
+        default:
+          value.push_back(ch);
+          break;
+      }
+      escaped = false;
+      continue;
+    }
+
+    if (ch == '\\') {
+      escaped = true;
+      continue;
+    }
+
+    if (ch == '"') {
+      return true;
+    }
+
+    value.push_back(ch);
+  }
+
+  input.setstate(std::ios::failbit);
+  return false;
 }
 
 std::string build_search_command_payload(const std::string& findPattern,
@@ -71,6 +142,19 @@ bool parse_search_command_payload(const std::string& payload,
   return true;
 }
 
+bool parse_macro_search_request(const RecordedMacroStep& step,
+                                MacroSearchRequest& request) {
+  return parse_search_command_payload(step.sParameter, request.findPattern,
+                                      request.replaceText,
+                                      request.caseSensitive, request.wholeWord,
+                                      request.regex);
+}
+
+bool is_find_all_app_command(const RecordedMacroStep& step) {
+  return step.macroType == MacroTypeIndex::mtAppCommand &&
+         static_cast<MacroAppCommand>(step.message) == MacroAppCommand::FindAll;
+}
+
 }  // namespace
 
 MacroManager::MacroManager(EditorWindow* editorWindow)
@@ -101,7 +185,28 @@ void MacroManager::playbackMacro(const Macro& macro) {
   std::cout << "Playing back macro with " << macro.size() << " steps" << std::endl;
 
   _isPlayingBack = true;
-  for (const auto& step : macro) {
+  for (size_t index = 0; index < macro.size(); ++index) {
+    const RecordedMacroStep& step = macro[index];
+    if (is_find_all_app_command(step)) {
+      std::vector<MacroSearchRequest> requests;
+      size_t nextIndex = index;
+      while (nextIndex < macro.size() &&
+             is_find_all_app_command(macro[nextIndex])) {
+        MacroSearchRequest request;
+        if (parse_macro_search_request(macro[nextIndex], request)) {
+          requests.push_back(std::move(request));
+        }
+        ++nextIndex;
+      }
+
+      if (_editorWindow && !requests.empty()) {
+        std::reverse(requests.begin(), requests.end());
+        _editorWindow->executeMacroFindAllBatch(requests);
+      }
+      index = nextIndex - 1;
+      continue;
+    }
+
     executeMacroStep(step);
   }
   _isPlayingBack = false;
@@ -183,23 +288,23 @@ void MacroManager::loadMacros() {
     return;
   }
 
-  // Simple text-based format for now
-  std::string line;
   MacroShortcut* currentMacro = nullptr;
-  while (std::getline(file, line)) {
-    if (line.empty() || line[0] == '#') continue;
-
-    std::istringstream input(line);
-    std::string token;
-    if (!(input >> token)) {
+  std::string token;
+  while (file >> token) {
+    if (!token.empty() && token[0] == '#') {
+      std::string ignoredLine;
+      std::getline(file, ignoredLine);
       continue;
     }
 
     if (token == "macro") {
       int id = 0;
       std::string name;
-      if (!(input >> id) || !read_quoted_field(input, name)) {
+      if (!(file >> id) || !read_quoted_field(file, name)) {
         currentMacro = nullptr;
+        file.clear();
+        std::string ignoredLine;
+        std::getline(file, ignoredLine);
         continue;
       }
 
@@ -215,8 +320,11 @@ void MacroManager::loadMacros() {
       sptr_t lParam = 0;
       int macroType = 0;
       std::string sParam;
-      if (!(input >> message >> wParam >> lParam >> macroType) ||
-          !read_quoted_field(input, sParam)) {
+      if (!(file >> message >> wParam >> lParam >> macroType) ||
+          !read_quoted_field(file, sParam)) {
+        file.clear();
+        std::string ignoredLine;
+        std::getline(file, ignoredLine);
         continue;
       }
 
