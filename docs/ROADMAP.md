@@ -5,7 +5,7 @@
 This roadmap tracks the current state of Velnix Editor, the remaining work
 before the next release, and the likely direction after that release.
 
-Last updated: 2026-05-23
+Last updated: 2026-05-27
 
 ## Current Positioning
 
@@ -213,6 +213,10 @@ package name, executable name, and release process.
 - Improve performance in large-file and many-tab scenarios.
 - Improve encoding workflows, including status-bar or document-property access
   for encoding display and switching.
+- Continue improving the bottom status bar with more useful document state and
+  editor mode details.
+- Add editor right-click context menu actions for common editing and document
+  workflows.
 
 ### Low Priority
 
@@ -225,14 +229,14 @@ package name, executable name, and release process.
 
 ## Milestones
 
-### M1: 0.1.1 Patch Release Cleanup
+### M1: 0.1.2 Patch Release Cleanup
 
-- Confirm release metadata for version `0.1.1`.
+- Confirm release metadata for version `0.1.2`.
 - Confirm package contents and installed files.
 - Complete build, test, package, and install validation.
 - Finish release notes and known limitations.
 
-### M2: Patch Release, 0.1.1
+### M2: Patch Release, 0.1.2
 
 - Publish package artifact.
 - Publish changelog and known issues.
@@ -243,6 +247,8 @@ package name, executable name, and release process.
 
 - Improve search responsiveness and search result workflows.
 - Improve preferences and shortcut configuration experience.
+- Improve the bottom status bar and add editor right-click context menu
+  workflows.
 - Add first-pass theme customization.
 - Add more complete editing behavior controls.
 

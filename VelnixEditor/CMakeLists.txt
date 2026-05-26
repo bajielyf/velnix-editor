@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    project(VelnixEditor VERSION 0.1.1 LANGUAGES CXX C)
+    project(VelnixEditor VERSION 0.1.2 LANGUAGES CXX C)
 else()
     project(VelnixEditor LANGUAGES CXX C)
 endif()

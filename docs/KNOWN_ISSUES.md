@@ -1,23 +1,24 @@
 # Velnix Editor Known Limitations
 
-This document records known limitations for the Velnix Editor 0.1.1 release
-line and the main follow-up areas planned after this release.
+This document records known limitations for the Velnix Editor 0.1.2 release.
 
 ## 1. Search Responsiveness
 
-Search and replace workflows are available, including result navigation and
-replace-all support. Find-all result building runs in the background, but very
-large files or broad search scopes still need release validation and tuning.
+Search and replace workflows are available, including result navigation,
+replace-all support, result refresh, background find-all processing, and
+cancellation. Very large files or broad multi-document searches still need more
+performance validation and tuning.
 
 Planned follow-up:
 
 - tune large-file and many-document search performance
-- improve progress and cancellation visibility for expensive result sets
-- add clearer feedback for expensive search operations
+- improve progress/status detail for expensive result sets
+- add clearer feedback when a search produces a large result set or takes a
+  long time
 
 ## 2. Theme and Appearance Customization
 
-The current release focuses on the core native editing workflow. Full theme
+The current release includes the core native editing workflow, but full theme
 customization is not included yet.
 
 Planned follow-up:
@@ -26,20 +27,21 @@ Planned follow-up:
 - improve UI appearance settings
 - persist theme-related preferences cleanly
 
-## 3. Drag-and-Drop File Opening
+## 3. File Opening Feedback
 
-Files can be opened through the menu and file dialogs, but drag-and-drop file
-opening for the main window and tab area is not part of the 0.1.1 release.
+Files can be opened through the menu, file dialogs, command-line arguments, and
+single-file or multi-file drag-and-drop targets in the main window, editor area,
+and tab labels. Duplicate paths are normalized and switch to the existing tab,
+but some edge-case feedback still needs refinement.
 
 Planned follow-up:
 
-- support dropping files onto the main editor window
-- handle duplicate-open detection consistently for dropped files
-- surface clear feedback when a dropped path cannot be opened
+- improve feedback for unsupported or partially handled drop payloads
+- expand validation for paths provided by desktop launchers and terminals
 
 ## 4. Plugin Support
 
-Velnix Editor 0.1.1 does not include a plugin system. This release keeps
+Velnix Editor 0.1.2 does not include a plugin system. This release keeps
 the extension boundary intentionally simple while the core editor behavior
 stabilizes.
 
@@ -60,16 +62,3 @@ Planned follow-up:
 - add task-focused help for editing, search, macros, shortcuts, and encoding
 - add troubleshooting notes for common packaging and runtime issues
 - keep release notes and user documentation aligned as features grow
-
-## 6. Release Validation Scope
-
-Before publishing a final artifact, validate the generated Debian package in a
-clean or disposable Linux environment.
-
-Recommended validation:
-
-- launch from both terminal and desktop entry
-- open, edit, save, reload, and close files
-- test search, replace, syntax highlighting, and encoding conversion
-- verify preferences, shortcuts, macros, recent files, and session restore
-- confirm installed documentation under `/usr/share/doc/velnix-editor/`

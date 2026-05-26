@@ -2,15 +2,22 @@
 
 All notable project-level changes intended for published releases should be recorded in this file.
 
-## [0.1.2] - unreleased
+## [0.1.2] - 2026-05-27
+
+Patch release focused on file-opening workflows, macro playback reliability,
+and Debian package release artifacts.
 
 ### Added
 
 - Added optional command-line file arguments, opening provided files after any restored session tabs.
+- Added drag-and-drop file opening for the main window, editor area, and tab labels.
+- Added `SHA256SUMS` generation alongside Debian package output.
 
 ### Fixed
 
 - Fixed the issue where the shortcut key was invalid when opening the software for the first time after installing the package.
+- Fixed macro playback omissions for recorded search result actions.
+- Fixed Debian package maintainer metadata.
 
 ## [0.1.1] - 2026-05-22
 

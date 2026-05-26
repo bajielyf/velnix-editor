@@ -7,7 +7,7 @@ and source-code work.
 
 Built with GTK, Scintilla, and Lexilla, Velnix Editor focuses on direct, efficient editing workflows in a clean native desktop application.
 
-Current release target: **0.1.1**.
+Current release target: **0.1.2**.
 
 ## Screenshot
 
@@ -44,7 +44,8 @@ Current demos focus on implemented editing workflows in the current release.
 ## Features
 
 - Native GTK interface with fast startup and low overhead
-- Multi-tab editing for text and source files
+- Multi-tab editing for text and source files, with menu, command-line, and
+  drag-and-drop file opening
 - Find and replace, syntax highlighting, selected-keyword occurrence
   highlighting, and macro recording/playback
 - Encoding detection and conversion for common UTF and ANSI workflows
@@ -57,9 +58,9 @@ editing loop: open quickly, edit comfortably, search confidently, save safely,
 and stay out of the way.
 
 The early release line starts with a solid native editor foundation. Future
-versions can grow into themes, drag-and-drop workflows, and plugins, but the
-center of the project should remain simple: practical power without unnecessary
-weight.
+versions can grow into themes, richer file-opening feedback, and plugins, but
+the center of the project should remain simple: practical power without
+unnecessary weight.
 
 ## Why Velnix?
 
@@ -104,7 +105,8 @@ User configuration is stored under `~/.config/velnix-editor/` by default.
 - [Known Limitations](docs/KNOWN_ISSUES.md)
 - [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md)
 - [Release Checklist](docs/RELEASE_CHECKLIST.md)
-- [Release Notes 0.1.1](docs/RELEASE_NOTES_0.1.1.md)
+- [Release Notes 0.1.2](docs/RELEASE_NOTES_0.1.2.md)
+- [Release Notes 0.1.1](docs/RELEASE_NOTES_0.1.1.md) - historical release snapshot
 - [Release Notes 0.1.0](docs/RELEASE_NOTES_0.1.0.md) - historical release snapshot
 - [Roadmap](docs/ROADMAP.md)
 
