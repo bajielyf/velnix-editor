@@ -5,7 +5,7 @@
 This roadmap tracks the current state of Velnix Editor, the remaining work
 before the next release, and the likely direction after that release.
 
-Last updated: 2026-05-27
+Last updated: 2026-05-28
 
 ## Current Positioning
 
@@ -206,6 +206,8 @@ package name, executable name, and release process.
 - Continue adding editor behavior settings. The first batch already includes
   whitespace display, EOL markers, current line highlight, indentation guides,
   long-line guide, and indentation behavior.
+- Continue improving search box functionality, including focus behavior,
+  keyboard navigation, option toggles, and clearer empty/no-match states.
 - Design and implement a theme system for editor colors, UI appearance, and
   user-selectable presets.
 - Improve macro system discoverability and usability.
@@ -246,6 +248,7 @@ package name, executable name, and release process.
 ### M3: Editing Experience Expansion
 
 - Improve search responsiveness and search result workflows.
+- Continue refining the search box interaction model and visible search states.
 - Improve preferences and shortcut configuration experience.
 - Improve the bottom status bar and add editor right-click context menu
   workflows.
