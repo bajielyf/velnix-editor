@@ -50,6 +50,32 @@ void bind_dialog_response_button(GtkWidget *dialog, gint responseId,
         Localization::bind_widget_text(button, key);
     }
 }
+
+void center_window_on_parent(GtkWidget *window, GtkWindow *parent) {
+    if (!window || !parent) {
+        return;
+    }
+
+    int parent_x = 0;
+    int parent_y = 0;
+    int parent_width = 0;
+    int parent_height = 0;
+    int window_width = 0;
+    int window_height = 0;
+
+    gtk_window_get_position(parent, &parent_x, &parent_y);
+    gtk_window_get_size(parent, &parent_width, &parent_height);
+    gtk_window_get_size(GTK_WINDOW(window), &window_width, &window_height);
+
+    if (parent_width <= 0 || parent_height <= 0 ||
+        window_width <= 0 || window_height <= 0) {
+        return;
+    }
+
+    const int x = parent_x + (parent_width - window_width) / 2;
+    const int y = parent_y + (parent_height - window_height) / 2;
+    gtk_window_move(GTK_WINDOW(window), x, y);
+}
 }
 
 SearchManager::SearchManager(EditorWindow *editorWindow)
@@ -77,6 +103,7 @@ void SearchManager::show_find_dialog() {
     sync_find_entry_with_selection();
     gtk_widget_show_all(find_dialog);
     gtk_widget_show(find_dialog);
+    center_window_on_parent(find_dialog, editorWindow->getDialogParentWindow());
     gtk_window_present(GTK_WINDOW(find_dialog));
 
     // Focus on the find entry
@@ -93,6 +120,7 @@ void SearchManager::show_replace_dialog() {
     sync_find_entry_with_selection();
     gtk_widget_show_all(replace_dialog);
     gtk_widget_show(replace_dialog);
+    center_window_on_parent(replace_dialog, editorWindow->getDialogParentWindow());
     gtk_window_present(GTK_WINDOW(replace_dialog));
 
     // Focus on the find entry
@@ -428,12 +456,13 @@ void SearchManager::refresh_localized_ui() {
 
 void SearchManager::create_find_dialog() {
     find_dialog = gtk_dialog_new_with_buttons(Localization::text("search.find_title"),
-                                              editorWindow->getDialogParentWindow(),
-                                              GTK_DIALOG_MODAL,
+                                              nullptr,
+                                              static_cast<GtkDialogFlags>(0),
                                               Localization::text("dialog.find_next"), GTK_RESPONSE_OK,
                                               Localization::text("dialog.find_all"), GTK_RESPONSE_APPLY,
                                               Localization::text("dialog.cancel"), GTK_RESPONSE_CANCEL,
                                               NULL);
+    gtk_window_set_type_hint(GTK_WINDOW(find_dialog), GDK_WINDOW_TYPE_HINT_NORMAL);
     Localization::bind_window_title(find_dialog, "search.find_title");
     bind_dialog_response_button(find_dialog, GTK_RESPONSE_OK, "dialog.find_next");
     bind_dialog_response_button(find_dialog, GTK_RESPONSE_APPLY, "dialog.find_all");
@@ -477,13 +506,14 @@ void SearchManager::create_find_dialog() {
 
 void SearchManager::create_replace_dialog() {
     replace_dialog = gtk_dialog_new_with_buttons(Localization::text("search.replace_title"),
-                                                 editorWindow->getDialogParentWindow(),
-                                                 GTK_DIALOG_MODAL,
+                                                 nullptr,
+                                                 static_cast<GtkDialogFlags>(0),
                                                  Localization::text("dialog.find_next"), GTK_RESPONSE_OK,
                                                  Localization::text("dialog.replace"), GTK_RESPONSE_APPLY,
                                                  Localization::text("dialog.replace_all"), GTK_RESPONSE_YES,
                                                  Localization::text("dialog.cancel"), GTK_RESPONSE_CANCEL,
                                                  NULL);
+    gtk_window_set_type_hint(GTK_WINDOW(replace_dialog), GDK_WINDOW_TYPE_HINT_NORMAL);
     Localization::bind_window_title(replace_dialog, "search.replace_title");
     bind_dialog_response_button(replace_dialog, GTK_RESPONSE_OK,
                                 "dialog.find_next");
