@@ -180,6 +180,7 @@ const std::vector<TranslationRow> kTranslations{
     {"search.case_sensitive", "Case sensitive", "大文字/小文字を区別", "대소문자 구분", "Distinguir mayúsculas", "Diferenciar maiúsculas", "Groß-/Kleinschreibung beachten", "Respecter la casse", "مطابقة حالة الأحرف", "區分大小寫", "区分大小写", "區分大小寫"},
     {"search.whole_word", "Whole word", "単語単位", "전체 단어", "Palabra completa", "Palavra inteira", "Ganzes Wort", "Mot entier", "كلمة كاملة", "全字匹配", "全字匹配", "全字匹配"},
     {"search.regex", "Regular expression", "正規表現", "정규식", "Expresión regular", "Expressão regular", "Regulärer Ausdruck", "Expression régulière", "تعبير نمطي", "正則表達式", "正则表达式", "正規表示式"},
+    {"search.backwards", "Search backwards", "逆方向に検索", "역방향 검색", "Buscar hacia atrás", "Pesquisar para trás", "Rückwärts suchen", "Rechercher en arrière", "البحث للخلف", "向後搜尋", "逆序搜索", "向後搜尋"},
     {"search.wrap_around", "Wrap around", "折り返す", "순환", "Dar la vuelta", "Voltar ao início", "Umbrechen", "Recherche circulaire", "التفاف البحث", "循環", "循环", "循環"},
     {"search.all_open_documents", "Search all open documents", "開いているすべての文書を検索", "열린 모든 문서 검색", "Buscar en todos los documentos abiertos", "Pesquisar em todos os documentos abertos", "Alle geöffneten Dokumente durchsuchen", "Rechercher dans tous les documents ouverts", "البحث في كل المستندات المفتوحة", "搜尋所有開啟文件", "搜索所有打开的文档", "搜尋所有開啟文件"},
     {"search.auto_refresh", "Auto Refresh", "自動更新", "자동 새로고침", "Actualización automática", "Atualização automática", "Automatisch aktualisieren", "Actualisation auto", "تحديث تلقائي", "自動更新", "自动刷新", "自動重新整理"},

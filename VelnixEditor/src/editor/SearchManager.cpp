@@ -36,6 +36,12 @@ GtkWidget *localized_check_button(const char *key) {
     return widget;
 }
 
+void configure_search_grid(GtkWidget *grid) {
+    gtk_grid_set_row_spacing(GTK_GRID(grid), 6);
+    gtk_grid_set_column_spacing(GTK_GRID(grid), 8);
+    gtk_container_set_border_width(GTK_CONTAINER(grid), 8);
+}
+
 GtkWidget *localized_toggle_button(const char *key) {
     GtkWidget *widget = gtk_toggle_button_new_with_label(Localization::text(key));
     Localization::bind_widget_text(widget, key);
@@ -277,13 +283,15 @@ void SearchManager::find_all_batch(const std::vector<MacroSearchRequest> &reques
 }
 
 void SearchManager::replace_next(const std::string &find_pattern, const std::string &replace_text,
-                                 bool case_sensitive, bool whole_word, bool regex) {
+                                 bool case_sensitive, bool whole_word, bool regex,
+                                 bool backwards) {
     if (editorWindow) {
         editorWindow->recordMacroSearchAction(
             MacroAppCommand::ReplaceNext, find_pattern, replace_text,
             case_sensitive, whole_word, regex);
     }
-    perform_replace(find_pattern, replace_text, case_sensitive, whole_word, regex, false);
+    perform_replace(find_pattern, replace_text, case_sensitive, whole_word, regex,
+                    false, backwards);
 }
 
 void SearchManager::replace_all(const std::string &find_pattern, const std::string &replace_text,
@@ -470,11 +478,13 @@ void SearchManager::create_find_dialog() {
 
     GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(find_dialog));
     GtkWidget *grid = gtk_grid_new();
+    configure_search_grid(grid);
     gtk_container_add(GTK_CONTAINER(content_area), grid);
 
     // Find label and entry
     GtkWidget *find_label = localized_label("search.find_what");
     find_entry = gtk_entry_new();
+    gtk_widget_set_hexpand(find_entry, TRUE);
     gtk_grid_attach(GTK_GRID(grid), find_label, 0, 0, 1, 1);
     gtk_grid_attach(GTK_GRID(grid), find_entry, 1, 0, 1, 1);
 
@@ -482,6 +492,7 @@ void SearchManager::create_find_dialog() {
     case_sensitive_check = localized_check_button("search.case_sensitive");
     whole_word_check = localized_check_button("search.whole_word");
     regex_check = localized_check_button("search.regex");
+    backwards_check = localized_check_button("search.backwards");
     wrap_around_check = localized_check_button("search.wrap_around");
     search_all_docs_check = localized_check_button("search.all_open_documents");
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(wrap_around_check),
@@ -489,11 +500,12 @@ void SearchManager::create_find_dialog() {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(search_all_docs_check),
                                  editorWindow->isSearchAllDocumentsEnabled());
 
-    gtk_grid_attach(GTK_GRID(grid), case_sensitive_check, 0, 1, 2, 1);
-    gtk_grid_attach(GTK_GRID(grid), whole_word_check, 0, 2, 2, 1);
-    gtk_grid_attach(GTK_GRID(grid), regex_check, 0, 3, 2, 1);
-    gtk_grid_attach(GTK_GRID(grid), wrap_around_check, 0, 4, 2, 1);
-    gtk_grid_attach(GTK_GRID(grid), search_all_docs_check, 0, 5, 2, 1);
+    gtk_grid_attach(GTK_GRID(grid), backwards_check, 2, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), case_sensitive_check, 0, 1, 3, 1);
+    gtk_grid_attach(GTK_GRID(grid), whole_word_check, 0, 2, 3, 1);
+    gtk_grid_attach(GTK_GRID(grid), regex_check, 0, 3, 3, 1);
+    gtk_grid_attach(GTK_GRID(grid), wrap_around_check, 0, 4, 3, 1);
+    gtk_grid_attach(GTK_GRID(grid), search_all_docs_check, 0, 5, 3, 1);
 
     // Connect signals
     g_signal_connect(find_dialog, "response", G_CALLBACK(on_find_close_clicked), this);
@@ -501,7 +513,7 @@ void SearchManager::create_find_dialog() {
     g_signal_connect(find_dialog, "destroy", G_CALLBACK(on_find_dialog_destroyed), this);
     g_signal_connect(find_entry, "activate", G_CALLBACK(on_find_next_clicked), this);
 
-    gtk_widget_set_size_request(find_dialog, 400, 200);
+    gtk_widget_set_size_request(find_dialog, 400, 230);
 }
 
 void SearchManager::create_replace_dialog() {
@@ -526,24 +538,28 @@ void SearchManager::create_replace_dialog() {
 
     GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(replace_dialog));
     GtkWidget *grid = gtk_grid_new();
+    configure_search_grid(grid);
     gtk_container_add(GTK_CONTAINER(content_area), grid);
 
     // Find label and entry
     GtkWidget *find_label = localized_label("search.find_what");
     find_entry = gtk_entry_new();
+    gtk_widget_set_hexpand(find_entry, TRUE);
     gtk_grid_attach(GTK_GRID(grid), find_label, 0, 0, 1, 1);
     gtk_grid_attach(GTK_GRID(grid), find_entry, 1, 0, 1, 1);
 
     // Replace label and entry
     GtkWidget *replace_label = localized_label("search.replace_with");
     replace_entry = gtk_entry_new();
+    gtk_widget_set_hexpand(replace_entry, TRUE);
     gtk_grid_attach(GTK_GRID(grid), replace_label, 0, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), replace_entry, 1, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), replace_entry, 1, 1, 2, 1);
 
     // Options
     case_sensitive_check = localized_check_button("search.case_sensitive");
     whole_word_check = localized_check_button("search.whole_word");
     regex_check = localized_check_button("search.regex");
+    backwards_check = localized_check_button("search.backwards");
     wrap_around_check = localized_check_button("search.wrap_around");
     search_all_docs_check = localized_check_button("search.all_open_documents");
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(wrap_around_check),
@@ -551,11 +567,12 @@ void SearchManager::create_replace_dialog() {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(search_all_docs_check),
                                  editorWindow->isSearchAllDocumentsEnabled());
 
-    gtk_grid_attach(GTK_GRID(grid), case_sensitive_check, 0, 2, 2, 1);
-    gtk_grid_attach(GTK_GRID(grid), whole_word_check, 0, 3, 2, 1);
-    gtk_grid_attach(GTK_GRID(grid), regex_check, 0, 4, 2, 1);
-    gtk_grid_attach(GTK_GRID(grid), wrap_around_check, 0, 5, 2, 1);
-    gtk_grid_attach(GTK_GRID(grid), search_all_docs_check, 0, 6, 2, 1);
+    gtk_grid_attach(GTK_GRID(grid), backwards_check, 2, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), case_sensitive_check, 0, 2, 3, 1);
+    gtk_grid_attach(GTK_GRID(grid), whole_word_check, 0, 3, 3, 1);
+    gtk_grid_attach(GTK_GRID(grid), regex_check, 0, 4, 3, 1);
+    gtk_grid_attach(GTK_GRID(grid), wrap_around_check, 0, 5, 3, 1);
+    gtk_grid_attach(GTK_GRID(grid), search_all_docs_check, 0, 6, 3, 1);
 
     // Connect signals
     g_signal_connect(replace_dialog, "response", G_CALLBACK(on_replace_close_clicked), this);
@@ -564,7 +581,7 @@ void SearchManager::create_replace_dialog() {
     g_signal_connect(find_entry, "activate", G_CALLBACK(on_find_next_clicked), this);
     g_signal_connect(replace_entry, "activate", G_CALLBACK(on_replace_next_clicked), this);
 
-    gtk_widget_set_size_request(replace_dialog, 400, 250);
+    gtk_widget_set_size_request(replace_dialog, 400, 280);
 }
 
 GtkWidget *SearchManager::create_results_panel(GtkWidget **view_out, GtkWidget **status_label_out,
@@ -1615,6 +1632,14 @@ bool SearchManager::perform_search(const std::string &pattern, bool forward,
 
     // Get current position
     sptr_t current_pos = scintilla_send_message(SCINTILLA(scintilla), SCI_GETCURRENTPOS, 0, 0);
+    const sptr_t selection_start =
+        scintilla_send_message(SCINTILLA(scintilla), SCI_GETSELECTIONSTART, 0, 0);
+    const sptr_t selection_end =
+        scintilla_send_message(SCINTILLA(scintilla), SCI_GETSELECTIONEND, 0, 0);
+    if (selection_start != selection_end) {
+        current_pos = forward ? std::max(selection_start, selection_end)
+                              : std::min(selection_start, selection_end);
+    }
     const sptr_t doc_length = scintilla_send_message(SCINTILLA(scintilla), SCI_GETLENGTH, 0, 0);
 
     // Set search flags
@@ -1670,7 +1695,7 @@ bool SearchManager::perform_search(const std::string &pattern, bool forward,
 
 void SearchManager::perform_replace(const std::string &find_pattern, const std::string &replace_text,
                                     bool case_sensitive, bool whole_word, bool regex,
-                                    bool replace_all) {
+                                    bool replace_all, bool backwards) {
     if (find_pattern.empty()) {
         return;
     }
@@ -1750,8 +1775,8 @@ void SearchManager::perform_replace(const std::string &find_pattern, const std::
         if (matches) {
             scintilla_send_message(SCINTILLA(scintilla), SCI_REPLACESEL, 0, reinterpret_cast<sptr_t>(replace_text.c_str()));
         } else {
-            // Find next occurrence
-            perform_search(find_pattern, true, case_sensitive, whole_word, regex);
+            perform_search(find_pattern, !backwards, case_sensitive, whole_word,
+                           regex);
         }
     }
 }
@@ -1772,8 +1797,14 @@ void SearchManager::on_find_next_clicked(GtkEntry *entry, gpointer data) {
                      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->whole_word_check));
     bool regex = self->regex_check &&
                 gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->regex_check));
+    bool backwards = self->backwards_check &&
+                     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->backwards_check));
 
-    self->find_next(pattern, case_sensitive, whole_word, regex);
+    if (backwards) {
+        self->find_previous(pattern, case_sensitive, whole_word, regex);
+    } else {
+        self->find_next(pattern, case_sensitive, whole_word, regex);
+    }
 }
 
 void SearchManager::on_find_previous_clicked(GtkButton *button, gpointer data) {
@@ -1812,8 +1843,11 @@ void SearchManager::on_replace_next_clicked(GtkEntry *entry, gpointer data) {
                      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->whole_word_check));
     bool regex = self->regex_check &&
                 gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->regex_check));
+    bool backwards = self->backwards_check &&
+                     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->backwards_check));
 
-    self->replace_next(find_pattern, replace_text, case_sensitive, whole_word, regex);
+    self->replace_next(find_pattern, replace_text, case_sensitive, whole_word,
+                       regex, backwards);
 }
 
 void SearchManager::on_replace_all_clicked(GtkButton *button, gpointer data) {
@@ -1931,6 +1965,7 @@ void SearchManager::on_find_dialog_destroyed(GtkWidget *widget, gpointer data) {
     self->whole_word_check = nullptr;
     self->regex_check = nullptr;
     self->wrap_around_check = nullptr;
+    self->backwards_check = nullptr;
     self->search_all_docs_check = nullptr;
 }
 
@@ -1944,6 +1979,7 @@ void SearchManager::on_replace_dialog_destroyed(GtkWidget *widget, gpointer data
     self->whole_word_check = nullptr;
     self->regex_check = nullptr;
     self->wrap_around_check = nullptr;
+    self->backwards_check = nullptr;
     self->search_all_docs_check = nullptr;
 }
 

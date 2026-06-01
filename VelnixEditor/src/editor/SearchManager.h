@@ -36,7 +36,8 @@ public:
                   bool whole_word = false, bool regex = false);
     void find_all_batch(const std::vector<MacroSearchRequest> &requests);
     void replace_next(const std::string &find_pattern, const std::string &replace_text,
-                      bool case_sensitive = false, bool whole_word = false, bool regex = false);
+                      bool case_sensitive = false, bool whole_word = false,
+                      bool regex = false, bool backwards = false);
     void replace_all(const std::string &find_pattern, const std::string &replace_text,
                      bool case_sensitive = false, bool whole_word = false, bool regex = false);
 
@@ -141,6 +142,7 @@ private:
     GtkWidget *whole_word_check = nullptr;
     GtkWidget *regex_check = nullptr;
     GtkWidget *wrap_around_check = nullptr;
+    GtkWidget *backwards_check = nullptr;
     GtkWidget *search_all_docs_check = nullptr;
     GtkWidget *find_results_view = nullptr;
     GtkWidget *replace_results_view = nullptr;
@@ -214,7 +216,7 @@ private:
     static std::string sanitize_preview_text(const std::string &text);
     void perform_replace(const std::string &find_pattern, const std::string &replace_text,
                          bool case_sensitive = false, bool whole_word = false, bool regex = false,
-                         bool replace_all = false);
+                         bool replace_all = false, bool backwards = false);
     void update_refresh_controls();
     static gboolean on_search_results_refresh_idle(gpointer data);
 
