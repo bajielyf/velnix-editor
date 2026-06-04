@@ -5,7 +5,7 @@
 This roadmap tracks the current state of Velnix Editor, the remaining work
 before the next release, and the likely direction after that release.
 
-Last updated: 2026-05-28
+Last updated: 2026-06-04
 
 ## Current Positioning
 
@@ -216,7 +216,8 @@ package name, executable name, and release process.
 - Improve encoding workflows, including status-bar or document-property access
   for encoding display and switching.
 - Continue improving the bottom status bar with more useful document state and
-  editor mode details.
+  editor mode details, including total document character count, selected
+  character count, and the current language/syntax state.
 - Add editor right-click context menu actions for common editing and document
   workflows.
 
@@ -250,8 +251,8 @@ package name, executable name, and release process.
 - Improve search responsiveness and search result workflows.
 - Continue refining the search box interaction model and visible search states.
 - Improve preferences and shortcut configuration experience.
-- Improve the bottom status bar and add editor right-click context menu
-  workflows.
+- Improve the bottom status bar with character statistics and current
+  language/syntax state, and add editor right-click context menu workflows.
 - Add first-pass theme customization.
 - Add more complete editing behavior controls.
 
