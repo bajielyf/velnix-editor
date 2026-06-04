@@ -71,6 +71,32 @@ GtkWidget *create_scrolled_section(GtkWidget *grid) {
   return scrolled;
 }
 
+void center_window_on_parent(GtkWidget *window, GtkWindow *parent) {
+  if (!window || !parent) {
+    return;
+  }
+
+  int parentX = 0;
+  int parentY = 0;
+  int parentWidth = 0;
+  int parentHeight = 0;
+  int windowWidth = 0;
+  int windowHeight = 0;
+
+  gtk_window_get_position(parent, &parentX, &parentY);
+  gtk_window_get_size(parent, &parentWidth, &parentHeight);
+  gtk_window_get_size(GTK_WINDOW(window), &windowWidth, &windowHeight);
+
+  if (parentWidth <= 0 || parentHeight <= 0 ||
+      windowWidth <= 0 || windowHeight <= 0) {
+    return;
+  }
+
+  const int x = parentX + (parentWidth - windowWidth) / 2;
+  const int y = parentY + (parentHeight - windowHeight) / 2;
+  gtk_window_move(GTK_WINDOW(window), x, y);
+}
+
 void append_section_tab(GtkWidget *notebook,
                         const char *title,
                         GtkWidget *grid) {
@@ -317,8 +343,11 @@ void SettingsManager::show_warning_dialog(const std::string &primary,
 }
 
 void SettingsManager::show_preferences_dialog() {
+  GtkWindow *parent = editorWindow ? editorWindow->getDialogParentWindow()
+                                   : nullptr;
   GtkWidget *dialog = gtk_dialog_new_with_buttons(
-      Localization::text("dialog.preferences"), nullptr, GTK_DIALOG_MODAL,
+      Localization::text("dialog.preferences"), parent,
+      static_cast<GtkDialogFlags>(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
       Localization::text("dialog.cancel"), GTK_RESPONSE_CANCEL,
       Localization::text("dialog.ok"), GTK_RESPONSE_ACCEPT, NULL);
   gtk_window_set_default_size(GTK_WINDOW(dialog), 720, 560);
@@ -672,6 +701,7 @@ void SettingsManager::show_preferences_dialog() {
                         recent_files_path_entry, config_row);
 
   gtk_widget_show_all(dialog);
+  center_window_on_parent(dialog, parent);
 
   if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
     EditorWindow::ConfigState updatedConfig = currentConfig;

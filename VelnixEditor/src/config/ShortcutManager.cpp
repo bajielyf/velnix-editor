@@ -153,6 +153,32 @@ std::string legacy_shortcuts_path(const std::string &shortcutsPath) {
   return shortcutsPath + ".ini";
 }
 
+void center_window_on_parent(GtkWidget *window, GtkWindow *parent) {
+  if (!window || !parent) {
+    return;
+  }
+
+  int parentX = 0;
+  int parentY = 0;
+  int parentWidth = 0;
+  int parentHeight = 0;
+  int windowWidth = 0;
+  int windowHeight = 0;
+
+  gtk_window_get_position(parent, &parentX, &parentY);
+  gtk_window_get_size(parent, &parentWidth, &parentHeight);
+  gtk_window_get_size(GTK_WINDOW(window), &windowWidth, &windowHeight);
+
+  if (parentWidth <= 0 || parentHeight <= 0 ||
+      windowWidth <= 0 || windowHeight <= 0) {
+    return;
+  }
+
+  const int x = parentX + (parentWidth - windowWidth) / 2;
+  const int y = parentY + (parentHeight - windowHeight) / 2;
+  gtk_window_move(GTK_WINDOW(window), x, y);
+}
+
 std::map<std::string, std::string> read_legacy_shortcuts_ini(std::istream &input) {
   std::map<std::string, std::string> shortcuts;
   std::string line;
@@ -1060,8 +1086,11 @@ bool ShortcutManager::restore_default_shortcuts(size_t index) {
 }
 
 void ShortcutManager::show_shortcuts_dialog() {
+  GtkWindow *parent = editorWindow ? editorWindow->getDialogParentWindow()
+                                   : nullptr;
   GtkWidget *dialog = gtk_dialog_new_with_buttons(
-      Localization::text("shortcut.title"), nullptr, GTK_DIALOG_MODAL,
+      Localization::text("shortcut.title"), parent,
+      static_cast<GtkDialogFlags>(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
       Localization::text("dialog.close"), GTK_RESPONSE_CLOSE, NULL);
   gtk_window_set_default_size(GTK_WINDOW(dialog), 900, 560);
   gtk_window_set_resizable(GTK_WINDOW(dialog), TRUE);
@@ -1212,6 +1241,7 @@ void ShortcutManager::show_shortcuts_dialog() {
                    G_CALLBACK(on_shortcut_table_button_press), &state);
 
   gtk_widget_show_all(dialog);
+  center_window_on_parent(dialog, parent);
   gtk_dialog_run(GTK_DIALOG(dialog));
   g_object_unref(filter);
   g_object_unref(store);
