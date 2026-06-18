@@ -55,6 +55,9 @@ public:
     static void on_replace_activate(GtkWidget *widget, gpointer data);
     static void on_go_to_line_activate(GtkWidget *widget, gpointer data);
     static void on_search_results_activate(GtkWidget *widget, gpointer data);
+    static void on_custom_highlight_color_activate(GtkWidget *widget, gpointer data);
+    static void on_clear_custom_highlight_color_activate(GtkWidget *widget, gpointer data);
+    static void on_clear_custom_highlights_activate(GtkWidget *widget, gpointer data);
     static void on_fullscreen_toggled(GtkWidget *widget, gpointer data);
     static void on_word_wrap_toggled(GtkWidget *widget, gpointer data);
     static void on_show_whitespace_toggled(GtkWidget *widget, gpointer data);

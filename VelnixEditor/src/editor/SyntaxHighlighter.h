@@ -20,25 +20,25 @@ public:
   explicit SyntaxHighlighter(DocumentManager* docManager);
   ~SyntaxHighlighter() = default;
 
-  // 语言管理
+  // Language management
   void setLexer(const std::string& lexerName);
   void setLexerByFileExtension(const std::string& filePath);
   std::string getCurrentLexer() const;
   void applyCurrentDocumentHighlighting();
 
-  // 样式设置
+  // Style settings
   void applyDefaultStyles();
   void setStyleColor(int styleId, const std::string& color);
   void setStyleFont(int styleId, const std::string& fontName, int fontSize);
 
-  // 语言检测
+  // Language detection
   std::string detectLanguageFromContent(const std::string& content);
   std::string detectLanguageFromFileName(const std::string& fileName);
 
-  // 可用语言列表
+  // Available language list
   const std::vector<LexerDefinition>& getAvailableLexers() const { return _availableLexers; }
 
-  // 语法高亮控制
+  // Syntax highlighting control
   void enableHighlighting(bool enable);
   bool isHighlightingEnabled() const { return _highlightingEnabled; }
 
@@ -56,7 +56,7 @@ private:
   void applyLexerStyles(const LexerDefinition& lexer);
   void applyKeywordLists(const LexerDefinition& lexer);
 
-  // 颜色定义
+  // Color definitions
   static constexpr const char* DEFAULT_BACKGROUND = "#FFFFFF";
   static constexpr const char* DEFAULT_FOREGROUND = "#000000";
   static constexpr const char* COMMENT_COLOR = "#008000";

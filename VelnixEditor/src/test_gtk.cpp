@@ -1,5 +1,5 @@
-// Scintilla GTK 测试程序
-// 作者：englyf
+// Scintilla GTK test program
+// Author: bajielyf
 
 #include <gtk/gtk.h>
 #define GTK 1

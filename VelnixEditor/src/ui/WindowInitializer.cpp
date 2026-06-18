@@ -45,6 +45,110 @@ GtkWidget *localized_check_menu_item(const char *key) {
   return item;
 }
 
+constexpr int kCustomKeywordMenuColorCount = 6;
+constexpr long kCustomKeywordMenuColors[kCustomKeywordMenuColorCount] = {
+    0x00FFFF,
+    0x8FEA8F,
+    0xFFD07A,
+    0xD78CFF,
+    0x66B8FF,
+    0xF2A4FF,
+};
+constexpr const char *kCustomKeywordMenuColorKeys[kCustomKeywordMenuColorCount] = {
+    "menu.highlight_yellow",
+    "menu.highlight_green",
+    "menu.highlight_blue",
+    "menu.highlight_pink",
+    "menu.highlight_orange",
+    "menu.highlight_purple",
+};
+
+GdkRGBA scintilla_color_to_rgba(long color) {
+  return GdkRGBA{
+      static_cast<double>(color & 0xff) / 255.0,
+      static_cast<double>((color >> 8) & 0xff) / 255.0,
+      static_cast<double>((color >> 16) & 0xff) / 255.0,
+      1.0,
+  };
+}
+
+gboolean on_highlight_color_swatch_draw(GtkWidget *widget, cairo_t *cr,
+                                        gpointer data) {
+  (void)data;
+  const long color = GPOINTER_TO_INT(
+      g_object_get_data(G_OBJECT(widget), "highlight-color"));
+  const GdkRGBA rgba = scintilla_color_to_rgba(color);
+  GtkAllocation allocation;
+  gtk_widget_get_allocation(widget, &allocation);
+
+  cairo_set_source_rgba(cr, rgba.red, rgba.green, rgba.blue, rgba.alpha);
+  cairo_rectangle(cr, 1.5, 1.5, allocation.width - 3.0,
+                  allocation.height - 3.0);
+  cairo_fill_preserve(cr);
+  cairo_set_source_rgba(cr, 0.16, 0.16, 0.16, 0.5);
+  cairo_set_line_width(cr, 1.0);
+  cairo_stroke(cr);
+  return FALSE;
+}
+
+GtkWidget *localized_color_menu_item(const char *key, long color) {
+  GtkWidget *item = gtk_menu_item_new();
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+  GtkWidget *swatch = gtk_drawing_area_new();
+  GtkWidget *label = gtk_label_new(Localization::text(key));
+
+  gtk_widget_set_size_request(swatch, 20, 14);
+  gtk_label_set_xalign(GTK_LABEL(label), 0.0f);
+  gtk_container_set_border_width(GTK_CONTAINER(box), 4);
+  gtk_box_pack_start(GTK_BOX(box), swatch, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), label, TRUE, TRUE, 0);
+  gtk_container_add(GTK_CONTAINER(item), box);
+
+  g_object_set_data(G_OBJECT(swatch), "highlight-color",
+                    GINT_TO_POINTER(static_cast<int>(color)));
+  g_signal_connect(swatch, "draw",
+                   G_CALLBACK(on_highlight_color_swatch_draw), nullptr);
+  Localization::bind_widget_text(label, key);
+  return item;
+}
+
+void append_custom_highlight_menu_items(GtkWidget *menu,
+                                        EditorWindow *editorWindow) {
+  for (int i = 0; i < kCustomKeywordMenuColorCount; ++i) {
+    GtkWidget *colorItem = localized_color_menu_item(
+        kCustomKeywordMenuColorKeys[i], kCustomKeywordMenuColors[i]);
+    g_object_set_data(G_OBJECT(colorItem), "highlight-color-index",
+                      GINT_TO_POINTER(i));
+    g_signal_connect(colorItem, "activate",
+                     G_CALLBACK(EventHandler::on_custom_highlight_color_activate),
+                     editorWindow);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), colorItem);
+  }
+}
+
+void append_clear_custom_highlight_menu_items(GtkWidget *menu,
+                                             EditorWindow *editorWindow) {
+  for (int i = 0; i < kCustomKeywordMenuColorCount; ++i) {
+    GtkWidget *colorItem = localized_color_menu_item(
+        kCustomKeywordMenuColorKeys[i], kCustomKeywordMenuColors[i]);
+    g_object_set_data(G_OBJECT(colorItem), "highlight-color-index",
+                      GINT_TO_POINTER(i));
+    g_signal_connect(
+        colorItem, "activate",
+        G_CALLBACK(EventHandler::on_clear_custom_highlight_color_activate),
+        editorWindow);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), colorItem);
+  }
+
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), gtk_separator_menu_item_new());
+
+  GtkWidget *clearItem = localized_menu_item("menu.clear_highlights");
+  g_signal_connect(clearItem, "activate",
+                   G_CALLBACK(EventHandler::on_clear_custom_highlights_activate),
+                   editorWindow);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), clearItem);
+}
+
 GtkWidget *create_markup_label(const std::string &markup, float xalign = 0.0f) {
   GtkWidget *label = gtk_label_new(nullptr);
   gtk_label_set_markup(GTK_LABEL(label), markup.c_str());
@@ -348,7 +452,6 @@ EditorWindow::WindowComponents WindowInitializer::createWindowComponents() {
 
   components.notebook = gtk_notebook_new();
   gtk_notebook_set_scrollable(GTK_NOTEBOOK(components.notebook), TRUE);
-  gtk_notebook_popup_enable(GTK_NOTEBOOK(components.notebook));
   g_signal_connect(components.notebook, "switch-page",
                    G_CALLBACK(EventHandler::on_notebook_switch_page),
                    editorWindow);
@@ -572,8 +675,16 @@ EditorWindow::FileMenuItems WindowInitializer::buildMenuBar(
   GtkWidget *zoomOutItem = localized_menu_item("menu.zoom_out");
   GtkWidget *resetZoomItem = localized_menu_item("menu.reset_zoom");
   GtkWidget *searchResultsItem = localized_menu_item("menu.search_results");
+  GtkWidget *highlightMenu = gtk_menu_new();
+  GtkWidget *highlightItem = localized_menu_item("menu.highlight");
+  GtkWidget *clearHighlightMenu = gtk_menu_new();
+  GtkWidget *clearHighlightItem =
+      localized_menu_item("menu.clear_custom_highlights");
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(showSymbolsItem), showSymbolsMenu);
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(zoomItem), zoomMenu);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(highlightItem), highlightMenu);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(clearHighlightItem),
+                            clearHighlightMenu);
 
   gtk_menu_shell_append(GTK_MENU_SHELL(viewMenu), components.wordWrapMenuItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(viewMenu), components.fullScreenMenuItem);
@@ -582,6 +693,8 @@ EditorWindow::FileMenuItems WindowInitializer::buildMenuBar(
   gtk_menu_shell_append(GTK_MENU_SHELL(viewMenu), showSymbolsItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(viewMenu), zoomItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(viewMenu), searchResultsItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(viewMenu), highlightItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(viewMenu), clearHighlightItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(showSymbolsMenu),
                         components.showWhitespaceMenuItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(showSymbolsMenu),
@@ -589,6 +702,8 @@ EditorWindow::FileMenuItems WindowInitializer::buildMenuBar(
   gtk_menu_shell_append(GTK_MENU_SHELL(zoomMenu), zoomInItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(zoomMenu), zoomOutItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(zoomMenu), resetZoomItem);
+  append_custom_highlight_menu_items(highlightMenu, editorWindow);
+  append_clear_custom_highlight_menu_items(clearHighlightMenu, editorWindow);
   g_signal_connect(components.wordWrapMenuItem, "toggled",
                    G_CALLBACK(EventHandler::on_word_wrap_toggled),
                    editorWindow);

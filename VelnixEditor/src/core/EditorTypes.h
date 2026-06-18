@@ -24,6 +24,11 @@ enum class DocumentStatus {
   Inaccessible
 };
 
+struct CustomKeywordHighlight {
+  std::string text;
+  int colorIndex = 0;
+};
+
 struct Document {
   GtkWidget *scintilla;
   GtkWidget *tabLabel;
@@ -53,6 +58,8 @@ struct Document {
   sptr_t cachedSelectedKeywordDocumentLength = INVALID_POSITION;
   bool selectedKeywordHighlightFromDoubleClick = false;
   std::string selectedKeywordDoubleClickText;
+  std::vector<CustomKeywordHighlight> customKeywordHighlights;
+  sptr_t cachedCustomKeywordDocumentLength = INVALID_POSITION;
 };
 
 struct ShortcutBinding {

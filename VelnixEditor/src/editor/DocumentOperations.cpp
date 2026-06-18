@@ -388,6 +388,7 @@ int DocumentOperations::createNewDocument(const std::string &title) {
 
   scintilla_send_message(SCINTILLA(doc.scintilla), SCI_SETCODEPAGE, SC_CP_UTF8,
                          0);
+  scintilla_send_message(SCINTILLA(doc.scintilla), SCI_USEPOPUP, 0, 0);
   scintilla_send_message(SCINTILLA(doc.scintilla), SCI_SETWRAPMODE,
                          this->editorWindow->getLineWrapMode() == "window"
                              ? SC_WRAP_CHAR

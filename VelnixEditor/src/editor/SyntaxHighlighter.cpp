@@ -12,7 +12,7 @@
 
 namespace {
 
-// 颜色转换辅助函数
+// Color conversion helper function
 long hexToLong(const std::string& hexColor) {
   if (hexColor.empty() || hexColor[0] != '#') {
     return 0;
@@ -305,7 +305,7 @@ void SyntaxHighlighter::applyDefaultStyles() {
   GtkWidget* sci = _docManager->getCurrentScintilla();
   if (!sci) return;
 
-  // 设置默认样式
+  // Set default styles
   scintilla_send_message(SCINTILLA(sci), SCI_STYLESETBACK, STYLE_DEFAULT,
                          hexToLong(DEFAULT_BACKGROUND));
   scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, STYLE_DEFAULT,
@@ -319,7 +319,7 @@ void SyntaxHighlighter::applyDefaultStyles() {
   scintilla_send_message(SCINTILLA(sci), SCI_STYLESETSIZE, STYLE_DEFAULT,
                          fontSize);
 
-  // 应用默认样式到所有样式
+  // Apply default style to all styles
   scintilla_send_message(SCINTILLA(sci), SCI_STYLECLEARALL, 0, 0);
 }
 
@@ -351,7 +351,7 @@ void SyntaxHighlighter::applyLexerStyles(const LexerDefinition& lexer) {
   switch (lexer.lexerId) {
     case SCLEX_CPP:
     case SCLEX_CPPNOCASE:
-      // C/C++ 样式
+      // C/C++ styles
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_C_COMMENT,
                              hexToLong(COMMENT_COLOR));
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_C_COMMENTLINE,
@@ -369,7 +369,7 @@ void SyntaxHighlighter::applyLexerStyles(const LexerDefinition& lexer) {
       break;
 
     case SCLEX_PYTHON:
-      // Python 样式
+      // Python styles
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_P_COMMENTLINE,
                              hexToLong(COMMENT_COLOR));
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_P_STRING,
@@ -381,7 +381,7 @@ void SyntaxHighlighter::applyLexerStyles(const LexerDefinition& lexer) {
       break;
 
     case SCLEX_HTML:
-      // HTML 样式
+      // HTML styles
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_H_TAG,
                              hexToLong(KEYWORD_COLOR));
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_H_ATTRIBUTE,
@@ -395,7 +395,7 @@ void SyntaxHighlighter::applyLexerStyles(const LexerDefinition& lexer) {
       break;
 
     case SCLEX_CSS:
-      // CSS 样式
+      // CSS styles
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_CSS_TAG,
                              hexToLong(KEYWORD_COLOR));
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_CSS_CLASS,
@@ -409,7 +409,7 @@ void SyntaxHighlighter::applyLexerStyles(const LexerDefinition& lexer) {
       break;
 
     case SCLEX_SQL:
-      // SQL 样式
+      // SQL styles
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_SQL_COMMENT,
                              hexToLong(COMMENT_COLOR));
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_SQL_COMMENTLINE,
@@ -423,7 +423,7 @@ void SyntaxHighlighter::applyLexerStyles(const LexerDefinition& lexer) {
       break;
 
     case SCLEX_MARKDOWN:
-      // Markdown 样式
+      // Markdown styles
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_MARKDOWN_STRONG1,
                              hexToLong(KEYWORD_COLOR));
       scintilla_send_message(SCINTILLA(sci), SCI_STYLESETFORE, SCE_MARKDOWN_STRONG2,
@@ -488,7 +488,7 @@ void SyntaxHighlighter::applyLexerStyles(const LexerDefinition& lexer) {
       break;
 
     default:
-      // 对于其他词法分析器，使用默认样式
+      // For other lexers, use default styles
       break;
   }
 }
@@ -510,7 +510,7 @@ void SyntaxHighlighter::setStyleFont(int styleId, const std::string& fontName, i
 }
 
 std::string SyntaxHighlighter::detectLanguageFromContent(const std::string& content) {
-  // 简单的基于内容的语言检测
+  // Simple content-based language detection
   if (content.find("#include") != std::string::npos ||
       content.find("int main") != std::string::npos) {
     return "cpp";
@@ -539,7 +539,7 @@ std::string SyntaxHighlighter::detectLanguageFromContent(const std::string& cont
     return "sql";
   }
 
-  return "null";  // 默认纯文本
+  return "null";  // default plain text
 }
 
 std::string SyntaxHighlighter::detectLanguageFromFileName(const std::string& fileName) {

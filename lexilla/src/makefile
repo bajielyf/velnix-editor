@@ -1,7 +1,7 @@
 # Make file for Lexilla
 # @file makefile
 # Copyright 2019 by Neil Hodgson <neilh@scintilla.org>
-# Modified by englyf
+# Modified by bajielyf
 # The License.txt file describes the conditions under which this software may be distributed.
 # This works on Windows or Linux using GCC 9.0+
 # This works on Windows, Linux, or macOS using Clang 9.0+

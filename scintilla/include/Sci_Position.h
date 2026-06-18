@@ -4,7 +4,7 @@
  ** These need to be available to clients written in C so are not in a C++ namespace.
  **/
 // Copyright 2015 by Neil Hodgson <neilh@scintilla.org>
-// Modified by englyf
+// Modified by bajielyf
 
 #ifndef SCI_POSITION_H
 #define SCI_POSITION_H

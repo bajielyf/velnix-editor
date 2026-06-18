@@ -44,6 +44,25 @@ constexpr int kSelectedKeywordIndicator = 8;
 constexpr long kSelectedKeywordIndicatorColor = 0x80FF00;
 constexpr int kSelectedKeywordIndicatorAlpha = 72;
 constexpr sptr_t kMaxSelectedKeywordLength = 128;
+constexpr int kCustomKeywordIndicatorBase = 16;
+constexpr int kCustomKeywordIndicatorCount = 6;
+constexpr int kCustomKeywordIndicatorAlpha = 96;
+constexpr long kCustomKeywordIndicatorColors[kCustomKeywordIndicatorCount] = {
+    0x00FFFF,
+    0x8FEA8F,
+    0xFFD07A,
+    0xD78CFF,
+    0x66B8FF,
+    0xF2A4FF,
+};
+constexpr const char *kCustomKeywordColorKeys[kCustomKeywordIndicatorCount] = {
+    "menu.highlight_yellow",
+    "menu.highlight_green",
+    "menu.highlight_blue",
+    "menu.highlight_pink",
+    "menu.highlight_orange",
+    "menu.highlight_purple",
+};
 
 enum class CaseTransform { Uppercase, Lowercase, TitleCase };
 
@@ -102,6 +121,167 @@ bool is_highlightable_selected_keyword(const std::string &text) {
     const unsigned char uch = static_cast<unsigned char>(ch);
     return std::isspace(uch) || ch == '\0';
   });
+}
+
+GdkRGBA scintilla_color_to_rgba(long color) {
+  return GdkRGBA{
+      static_cast<double>(color & 0xff) / 255.0,
+      static_cast<double>((color >> 8) & 0xff) / 255.0,
+      static_cast<double>((color >> 16) & 0xff) / 255.0,
+      1.0,
+  };
+}
+
+gboolean on_highlight_color_swatch_draw(GtkWidget *widget, cairo_t *cr,
+                                        gpointer data) {
+  (void)data;
+  const long color = GPOINTER_TO_INT(
+      g_object_get_data(G_OBJECT(widget), "highlight-color"));
+  const GdkRGBA rgba = scintilla_color_to_rgba(color);
+  GtkAllocation allocation;
+  gtk_widget_get_allocation(widget, &allocation);
+
+  cairo_set_source_rgba(cr, rgba.red, rgba.green, rgba.blue, rgba.alpha);
+  cairo_rectangle(cr, 1.5, 1.5, allocation.width - 3.0,
+                  allocation.height - 3.0);
+  cairo_fill_preserve(cr);
+  cairo_set_source_rgba(cr, 0.16, 0.16, 0.16, 0.5);
+  cairo_set_line_width(cr, 1.0);
+  cairo_stroke(cr);
+  return FALSE;
+}
+
+GtkWidget *create_highlight_color_menu_item(const char *labelKey,
+                                            long color) {
+  GtkWidget *item = gtk_menu_item_new();
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+  GtkWidget *swatch = gtk_drawing_area_new();
+  GtkWidget *label = gtk_label_new(Localization::text(labelKey));
+
+  gtk_widget_set_size_request(swatch, 20, 14);
+  gtk_label_set_xalign(GTK_LABEL(label), 0.0f);
+  gtk_container_set_border_width(GTK_CONTAINER(box), 4);
+  gtk_box_pack_start(GTK_BOX(box), swatch, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), label, TRUE, TRUE, 0);
+  gtk_container_add(GTK_CONTAINER(item), box);
+
+  g_object_set_data(G_OBJECT(swatch), "highlight-color",
+                    GINT_TO_POINTER(static_cast<int>(color)));
+  g_signal_connect(swatch, "draw",
+                   G_CALLBACK(on_highlight_color_swatch_draw), nullptr);
+  Localization::bind_widget_text(label, labelKey);
+  return item;
+}
+
+void append_custom_highlight_menu_items(GtkWidget *menu,
+                                        EditorWindow *editorWindow,
+                                        const std::string &selectedText = {},
+                                        int documentIndex = -1) {
+  for (int i = 0; i < kCustomKeywordIndicatorCount; ++i) {
+    GtkWidget *colorItem = create_highlight_color_menu_item(
+        kCustomKeywordColorKeys[i], kCustomKeywordIndicatorColors[i]);
+    g_object_set_data(G_OBJECT(colorItem), "highlight-color-index",
+                      GINT_TO_POINTER(i));
+    g_object_set_data(G_OBJECT(colorItem), "highlight-document-index",
+                      GINT_TO_POINTER(documentIndex));
+    if (!selectedText.empty()) {
+      g_object_set_data_full(G_OBJECT(colorItem), "highlight-text",
+                             g_strdup(selectedText.c_str()), g_free);
+    }
+    g_signal_connect(colorItem, "activate",
+                     G_CALLBACK(EventHandler::on_custom_highlight_color_activate),
+                     editorWindow);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), colorItem);
+  }
+}
+
+void append_clear_custom_highlight_menu_items(GtkWidget *menu,
+                                             EditorWindow *editorWindow,
+                                             int documentIndex = -1) {
+  for (int i = 0; i < kCustomKeywordIndicatorCount; ++i) {
+    GtkWidget *colorItem = create_highlight_color_menu_item(
+        kCustomKeywordColorKeys[i], kCustomKeywordIndicatorColors[i]);
+    g_object_set_data(G_OBJECT(colorItem), "highlight-color-index",
+                      GINT_TO_POINTER(i));
+    g_object_set_data(G_OBJECT(colorItem), "highlight-document-index",
+                      GINT_TO_POINTER(documentIndex));
+    g_signal_connect(
+        colorItem, "activate",
+        G_CALLBACK(EventHandler::on_clear_custom_highlight_color_activate),
+        editorWindow);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), colorItem);
+  }
+
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), gtk_separator_menu_item_new());
+  GtkWidget *clearItem =
+      gtk_menu_item_new_with_label(Localization::text("menu.clear_highlights"));
+  Localization::bind_widget_text(clearItem, "menu.clear_highlights");
+  g_object_set_data(G_OBJECT(clearItem), "highlight-document-index",
+                    GINT_TO_POINTER(documentIndex));
+  g_signal_connect(clearItem, "activate",
+                   G_CALLBACK(EventHandler::on_clear_custom_highlights_activate),
+                   editorWindow);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), clearItem);
+}
+
+std::string get_single_selection_text(GtkWidget *scintilla) {
+  if (!scintilla) {
+    return {};
+  }
+
+  const sptr_t selectionCount =
+      scintilla_send_message(SCINTILLA(scintilla), SCI_GETSELECTIONS, 0, 0);
+  if (selectionCount != 1) {
+    return {};
+  }
+
+  sptr_t selectionStart = scintilla_send_message(
+      SCINTILLA(scintilla), SCI_GETSELECTIONSTART, 0, 0);
+  sptr_t selectionEnd = scintilla_send_message(
+      SCINTILLA(scintilla), SCI_GETSELECTIONEND, 0, 0);
+  if (selectionStart > selectionEnd) {
+    std::swap(selectionStart, selectionEnd);
+  }
+
+  const sptr_t selectionLength = selectionEnd - selectionStart;
+  if (selectionLength <= 0 || selectionLength > kMaxSelectedKeywordLength) {
+    return {};
+  }
+
+  std::vector<char> buffer(static_cast<size_t>(selectionLength) + 1, '\0');
+  scintilla_send_message(SCINTILLA(scintilla), SCI_GETSELTEXT, 0,
+                         reinterpret_cast<sptr_t>(buffer.data()));
+  return std::string(buffer.data(), static_cast<size_t>(selectionLength));
+}
+
+std::string get_word_at_position(GtkWidget *scintilla, sptr_t position) {
+  if (!scintilla || position == INVALID_POSITION) {
+    return {};
+  }
+
+  const sptr_t textLength =
+      scintilla_send_message(SCINTILLA(scintilla), SCI_GETTEXTLENGTH, 0, 0);
+  if (textLength <= 0) {
+    return {};
+  }
+
+  position = std::max<sptr_t>(0, std::min(position, textLength - 1));
+  const sptr_t start =
+      scintilla_send_message(SCINTILLA(scintilla), SCI_WORDSTARTPOSITION,
+                             position, TRUE);
+  const sptr_t end =
+      scintilla_send_message(SCINTILLA(scintilla), SCI_WORDENDPOSITION,
+                             position, TRUE);
+  const sptr_t length = end - start;
+  if (length <= 0 || length > kMaxSelectedKeywordLength) {
+    return {};
+  }
+
+  std::vector<char> buffer(static_cast<size_t>(length) + 1, '\0');
+  Sci_TextRangeFull range{{start, end}, buffer.data()};
+  scintilla_send_message(SCINTILLA(scintilla), SCI_GETTEXTRANGEFULL, 0,
+                         reinterpret_cast<sptr_t>(&range));
+  return std::string(buffer.data(), static_cast<size_t>(length));
 }
 
 int clamp_int(int value, int minValue, int maxValue) {
@@ -1053,6 +1233,9 @@ void EditorWindow::refreshDynamicHighlights(int index, int updateFlags) {
   if (contentChanged || selectionChanged) {
     updateSelectedKeywordHighlightForDocument(*doc, contentChanged);
   }
+  if (contentChanged) {
+    updateCustomKeywordHighlightsForDocument(*doc, true);
+  }
 }
 
 void EditorWindow::handleSelectedKeywordDoubleClick(int index) {
@@ -1064,6 +1247,133 @@ void EditorWindow::handleSelectedKeywordDoubleClick(int index) {
   doc->selectedKeywordHighlightFromDoubleClick = true;
   doc->selectedKeywordDoubleClickText.clear();
   updateSelectedKeywordHighlightForDocument(*doc, true, true);
+}
+
+void EditorWindow::highlightSelectionWithColor(int colorIndex) {
+  Document *doc = getDocument(currentDocumentIndex);
+  if (!doc || !doc->scintilla) {
+    return;
+  }
+
+  const std::string selectedText = get_single_selection_text(doc->scintilla);
+  highlightTextWithColor(colorIndex, selectedText);
+}
+
+void EditorWindow::highlightTextWithColor(int colorIndex,
+                                          const std::string &text) {
+  highlightTextInDocumentWithColor(currentDocumentIndex, colorIndex, text);
+}
+
+void EditorWindow::highlightTextInDocumentWithColor(int documentIndex,
+                                                    int colorIndex,
+                                                    const std::string &text) {
+  Document *doc = getDocument(documentIndex);
+  if (!doc || !doc->scintilla) {
+    return;
+  }
+
+  colorIndex = clamp_int(colorIndex, 0, kCustomKeywordIndicatorCount - 1);
+  const std::string selectedText = text;
+  if (!is_highlightable_selected_keyword(selectedText)) {
+    GtkWidget *dialog = gtk_message_dialog_new(
+        GTK_WINDOW(window), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK,
+        "%s", "Select a single word or token before applying a highlight.");
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+    return;
+  }
+
+  auto existing = std::find_if(
+      doc->customKeywordHighlights.begin(), doc->customKeywordHighlights.end(),
+      [&selectedText](const CustomKeywordHighlight &highlight) {
+        return highlight.text == selectedText;
+      });
+  if (existing != doc->customKeywordHighlights.end()) {
+    existing->colorIndex = colorIndex;
+  } else {
+    doc->customKeywordHighlights.push_back({selectedText, colorIndex});
+  }
+
+  updateCustomKeywordHighlightsForDocument(*doc, true);
+}
+
+void EditorWindow::clearCurrentDocumentCustomHighlights() {
+  clearDocumentCustomHighlights(currentDocumentIndex);
+}
+
+void EditorWindow::clearDocumentCustomHighlights(int documentIndex) {
+  Document *doc = getDocument(documentIndex);
+  if (!doc || !doc->scintilla) {
+    return;
+  }
+
+  doc->customKeywordHighlights.clear();
+  updateCustomKeywordHighlightsForDocument(*doc, true);
+}
+
+void EditorWindow::clearCurrentDocumentCustomHighlightsForColor(int colorIndex) {
+  clearDocumentCustomHighlightsForColor(currentDocumentIndex, colorIndex);
+}
+
+void EditorWindow::clearDocumentCustomHighlightsForColor(int documentIndex,
+                                                         int colorIndex) {
+  Document *doc = getDocument(documentIndex);
+  if (!doc || !doc->scintilla) {
+    return;
+  }
+
+  colorIndex = clamp_int(colorIndex, 0, kCustomKeywordIndicatorCount - 1);
+  doc->customKeywordHighlights.erase(
+      std::remove_if(doc->customKeywordHighlights.begin(),
+                     doc->customKeywordHighlights.end(),
+                     [colorIndex](const CustomKeywordHighlight &highlight) {
+                       return highlight.colorIndex == colorIndex;
+                     }),
+      doc->customKeywordHighlights.end());
+  updateCustomKeywordHighlightsForDocument(*doc, true);
+}
+
+void EditorWindow::showEditorContextMenu(GtkWidget *widget,
+                                         GdkEventButton *event) {
+  const int contextDocumentIndex = findDocumentIndexByScintilla(widget);
+  if (contextDocumentIndex >= 0 && contextDocumentIndex != currentDocumentIndex) {
+    activateDocument(contextDocumentIndex);
+  }
+
+  std::string contextText = get_single_selection_text(widget);
+  if (contextText.empty() && event) {
+    const sptr_t position = scintilla_send_message(
+        SCINTILLA(widget), SCI_POSITIONFROMPOINTCLOSE,
+        static_cast<uptr_t>(event->x), static_cast<sptr_t>(event->y));
+    contextText = get_word_at_position(widget, position);
+  }
+
+  GtkWidget *menu = gtk_menu_new();
+  GtkWidget *highlightItem =
+      gtk_menu_item_new_with_label(Localization::text("menu.highlight"));
+  Localization::bind_widget_text(highlightItem, "menu.highlight");
+  GtkWidget *highlightMenu = gtk_menu_new();
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(highlightItem), highlightMenu);
+  append_custom_highlight_menu_items(highlightMenu, this, contextText,
+                                     contextDocumentIndex);
+
+  GtkWidget *clearItem = gtk_menu_item_new_with_label(
+      Localization::text("menu.clear_custom_highlights"));
+  Localization::bind_widget_text(clearItem, "menu.clear_custom_highlights");
+  GtkWidget *clearMenu = gtk_menu_new();
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(clearItem), clearMenu);
+  append_clear_custom_highlight_menu_items(clearMenu, this,
+                                          contextDocumentIndex);
+
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), highlightItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), clearItem);
+  g_signal_connect(menu, "selection-done", G_CALLBACK(gtk_widget_destroy),
+                   nullptr);
+  gtk_widget_show_all(menu);
+
+  gtk_menu_popup_at_pointer(GTK_MENU(menu),
+                            reinterpret_cast<GdkEvent *>(event));
+  (void)widget;
 }
 
 void EditorWindow::handleMacroScintillaNotification(
@@ -1538,6 +1848,17 @@ void EditorWindow::applyEditorBehaviorSettings(GtkWidget *scintilla) {
     scintilla_send_message(SCINTILLA(target), SCI_INDICSETOUTLINEALPHA,
                            kSelectedKeywordIndicator,
                            kSelectedKeywordIndicatorAlpha + 36);
+    for (int i = 0; i < kCustomKeywordIndicatorCount; ++i) {
+      const int indicator = kCustomKeywordIndicatorBase + i;
+      scintilla_send_message(SCINTILLA(target), SCI_INDICSETSTYLE, indicator,
+                             INDIC_ROUNDBOX);
+      scintilla_send_message(SCINTILLA(target), SCI_INDICSETFORE, indicator,
+                             kCustomKeywordIndicatorColors[i]);
+      scintilla_send_message(SCINTILLA(target), SCI_INDICSETALPHA, indicator,
+                             kCustomKeywordIndicatorAlpha);
+      scintilla_send_message(SCINTILLA(target), SCI_INDICSETOUTLINEALPHA,
+                             indicator, kCustomKeywordIndicatorAlpha + 28);
+    }
     scintilla_send_message(SCINTILLA(target), SCI_SETENDATLASTLINE,
                            scrollPastLastLine ? 0 : 1, 0);
     scintilla_send_message(SCINTILLA(target), SCI_SETEDGECOLOUR,
@@ -1576,6 +1897,7 @@ void EditorWindow::applyEditorBehaviorSettings(GtkWidget *scintilla) {
 
     updateBraceHighlighting(target);
     updateSelectedKeywordHighlight(target);
+    updateCustomKeywordHighlights(target, true);
   };
 
   if (scintilla) {
@@ -1714,6 +2036,21 @@ void EditorWindow::updateSelectedKeywordHighlight(GtkWidget *scintilla) {
   }
 }
 
+void EditorWindow::updateCustomKeywordHighlights(GtkWidget *scintilla,
+                                                 bool force) {
+  if (scintilla) {
+    int index = findDocumentIndexByScintilla(scintilla);
+    if (Document *doc = getDocument(index)) {
+      updateCustomKeywordHighlightsForDocument(*doc, force);
+    }
+    return;
+  }
+
+  for (auto &doc : documents) {
+    updateCustomKeywordHighlightsForDocument(doc, force);
+  }
+}
+
 void EditorWindow::updateBraceHighlightingForDocument(Document &doc, bool force,
                                                       sptr_t currentPos) {
   GtkWidget *target = doc.scintilla;
@@ -1846,26 +2183,7 @@ void EditorWindow::updateSelectedKeywordHighlightForDocument(Document &doc,
 
   const sptr_t textLength =
       scintilla_send_message(SCINTILLA(target), SCI_GETTEXTLENGTH, 0, 0);
-  std::string selectedText;
-  const sptr_t selectionCount =
-      scintilla_send_message(SCINTILLA(target), SCI_GETSELECTIONS, 0, 0);
-  if (selectionCount == 1) {
-    sptr_t selectionStart = scintilla_send_message(
-        SCINTILLA(target), SCI_GETSELECTIONSTART, 0, 0);
-    sptr_t selectionEnd = scintilla_send_message(
-        SCINTILLA(target), SCI_GETSELECTIONEND, 0, 0);
-    if (selectionStart > selectionEnd) {
-      std::swap(selectionStart, selectionEnd);
-    }
-    const sptr_t selectionLength = selectionEnd - selectionStart;
-    if (selectionLength > 0 &&
-        selectionLength <= kMaxSelectedKeywordLength) {
-      std::vector<char> buffer(static_cast<size_t>(selectionLength) + 1, '\0');
-      scintilla_send_message(SCINTILLA(target), SCI_GETSELTEXT, 0,
-                             reinterpret_cast<sptr_t>(buffer.data()));
-      selectedText.assign(buffer.data(), static_cast<size_t>(selectionLength));
-    }
-  }
+  const std::string selectedText = get_single_selection_text(target);
 
   if (!is_highlightable_selected_keyword(selectedText)) {
     if (force || !doc.cachedSelectedKeywordHighlight.empty()) {
@@ -1949,6 +2267,67 @@ void EditorWindow::updateSelectedKeywordHighlightForDocument(Document &doc,
 
   doc.cachedSelectedKeywordHighlight = selectedText;
   doc.cachedSelectedKeywordDocumentLength = textLength;
+}
+
+void EditorWindow::updateCustomKeywordHighlightsForDocument(Document &doc,
+                                                            bool force) {
+  GtkWidget *target = doc.scintilla;
+  if (!target) {
+    return;
+  }
+
+  const sptr_t textLength =
+      scintilla_send_message(SCINTILLA(target), SCI_GETTEXTLENGTH, 0, 0);
+  if (!force && doc.cachedCustomKeywordDocumentLength == textLength) {
+    return;
+  }
+
+  for (int i = 0; i < kCustomKeywordIndicatorCount; ++i) {
+    scintilla_send_message(SCINTILLA(target), SCI_SETINDICATORCURRENT,
+                           kCustomKeywordIndicatorBase + i, 0);
+    scintilla_send_message(SCINTILLA(target), SCI_INDICATORCLEARRANGE, 0,
+                           textLength);
+  }
+
+  for (const auto &highlight : doc.customKeywordHighlights) {
+    if (!is_highlightable_selected_keyword(highlight.text)) {
+      continue;
+    }
+
+    const int colorIndex =
+        clamp_int(highlight.colorIndex, 0, kCustomKeywordIndicatorCount - 1);
+    const sptr_t selectedLength =
+        static_cast<sptr_t>(highlight.text.size());
+    sptr_t searchStart = 0;
+    const int searchFlags =
+        SCFIND_MATCHCASE |
+        (is_plain_ascii_token(highlight.text) ? SCFIND_WHOLEWORD : 0);
+    scintilla_send_message(SCINTILLA(target), SCI_SETSEARCHFLAGS, searchFlags,
+                           0);
+    scintilla_send_message(SCINTILLA(target), SCI_SETINDICATORCURRENT,
+                           kCustomKeywordIndicatorBase + colorIndex, 0);
+
+    while (searchStart <= textLength - selectedLength) {
+      scintilla_send_message(SCINTILLA(target), SCI_SETTARGETRANGE,
+                             searchStart, textLength);
+      const sptr_t matchStart = scintilla_send_message(
+          SCINTILLA(target), SCI_SEARCHINTARGET, selectedLength,
+          reinterpret_cast<sptr_t>(highlight.text.c_str()));
+      if (matchStart == INVALID_POSITION) {
+        break;
+      }
+      const sptr_t matchEnd =
+          scintilla_send_message(SCINTILLA(target), SCI_GETTARGETEND, 0, 0);
+      if (matchEnd <= matchStart) {
+        break;
+      }
+      scintilla_send_message(SCINTILLA(target), SCI_INDICATORFILLRANGE,
+                             matchStart, matchEnd - matchStart);
+      searchStart = matchEnd;
+    }
+  }
+
+  doc.cachedCustomKeywordDocumentLength = textLength;
 }
 
 bool EditorWindow::save_file() { return documentManager->saveDocument(currentDocumentIndex); }

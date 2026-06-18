@@ -78,6 +78,11 @@ gboolean EventHandler::on_scintilla_button_press_event(GtkWidget *widget,
                                                        GdkEventButton *event,
                                                        gpointer data) {
   EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
+  if (event && event->button == 3) {
+    gtk_widget_grab_focus(widget);
+    return TRUE;
+  }
+
   if (!editorWindow->isColumnEditorEnabled() || event->button != 1) {
     return FALSE;
   }
@@ -91,6 +96,11 @@ gboolean EventHandler::on_scintilla_button_release_event(GtkWidget *widget,
                                                          GdkEventButton *event,
                                                          gpointer data) {
   EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
+  if (event && event->button == 3) {
+    editorWindow->showEditorContextMenu(widget, event);
+    return TRUE;
+  }
+
   if (!editorWindow->isColumnEditorDragging() || event->button != 1) {
     return FALSE;
   }
@@ -421,6 +431,64 @@ void EventHandler::on_search_results_activate(GtkWidget *widget, gpointer data) 
   (void)widget;
   EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
   editorWindow->toggleSearchResultsPanel();
+}
+
+void EventHandler::on_custom_highlight_color_activate(GtkWidget *widget,
+                                                      gpointer data) {
+  EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
+  const int colorIndex = GPOINTER_TO_INT(
+      g_object_get_data(G_OBJECT(widget), "highlight-color-index"));
+  gpointer documentIndexData =
+      g_object_get_data(G_OBJECT(widget), "highlight-document-index");
+  const int documentIndex = documentIndexData
+                                ? GPOINTER_TO_INT(documentIndexData)
+                                : -1;
+  const char *highlightText =
+      static_cast<const char *>(g_object_get_data(G_OBJECT(widget),
+                                                  "highlight-text"));
+  if (highlightText && *highlightText) {
+    if (documentIndex >= 0) {
+      editorWindow->highlightTextInDocumentWithColor(documentIndex, colorIndex,
+                                                     highlightText);
+    } else {
+      editorWindow->highlightTextWithColor(colorIndex, highlightText);
+    }
+    return;
+  }
+  editorWindow->highlightSelectionWithColor(colorIndex);
+}
+
+void EventHandler::on_clear_custom_highlight_color_activate(GtkWidget *widget,
+                                                            gpointer data) {
+  EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
+  const int colorIndex = GPOINTER_TO_INT(
+      g_object_get_data(G_OBJECT(widget), "highlight-color-index"));
+  gpointer documentIndexData =
+      g_object_get_data(G_OBJECT(widget), "highlight-document-index");
+  const int documentIndex = documentIndexData
+                                ? GPOINTER_TO_INT(documentIndexData)
+                                : -1;
+  if (documentIndex >= 0) {
+    editorWindow->clearDocumentCustomHighlightsForColor(documentIndex,
+                                                        colorIndex);
+  } else {
+    editorWindow->clearCurrentDocumentCustomHighlightsForColor(colorIndex);
+  }
+}
+
+void EventHandler::on_clear_custom_highlights_activate(GtkWidget *widget,
+                                                       gpointer data) {
+  EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
+  gpointer documentIndexData =
+      g_object_get_data(G_OBJECT(widget), "highlight-document-index");
+  const int documentIndex = documentIndexData
+                                ? GPOINTER_TO_INT(documentIndexData)
+                                : -1;
+  if (documentIndex >= 0) {
+    editorWindow->clearDocumentCustomHighlights(documentIndex);
+  } else {
+    editorWindow->clearCurrentDocumentCustomHighlights();
+  }
 }
 
 void EventHandler::on_fullscreen_toggled(GtkWidget *widget, gpointer data) {

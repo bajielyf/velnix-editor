@@ -376,6 +376,16 @@ public:
     void zoomIn();
     void zoomOut();
     void resetZoom();
+    void highlightSelectionWithColor(int colorIndex);
+    void highlightTextWithColor(int colorIndex, const std::string &text);
+    void highlightTextInDocumentWithColor(int documentIndex, int colorIndex,
+                                          const std::string &text);
+    void clearDocumentCustomHighlightsForColor(int documentIndex,
+                                               int colorIndex);
+    void clearDocumentCustomHighlights(int documentIndex);
+    void clearCurrentDocumentCustomHighlightsForColor(int colorIndex);
+    void clearCurrentDocumentCustomHighlights();
+    void showEditorContextMenu(GtkWidget *widget, GdkEventButton *event);
     std::vector<ShortcutBinding> &getShortcutBindings() { return shortcutBindings; }
     const std::vector<ShortcutBinding> &getShortcutBindings() const {
         return shortcutBindings;
@@ -429,12 +439,15 @@ private:
     void updateBraceHighlighting(GtkWidget *scintilla = nullptr);
     void updateCurrentColumnHighlight(GtkWidget *scintilla = nullptr);
     void updateSelectedKeywordHighlight(GtkWidget *scintilla = nullptr);
+    void updateCustomKeywordHighlights(GtkWidget *scintilla = nullptr,
+                                       bool force = false);
     void updateBraceHighlightingForDocument(Document &doc, bool force,
                                             sptr_t currentPos = INVALID_POSITION);
     void updateCurrentColumnHighlightForDocument(Document &doc, bool force,
                                                  sptr_t currentPos = INVALID_POSITION);
     void updateSelectedKeywordHighlightForDocument(Document &doc, bool force,
                                                    bool allowWhenSmartDisabled = false);
+    void updateCustomKeywordHighlightsForDocument(Document &doc, bool force);
     std::unique_ptr<EventHandler> eventHandler;
     std::unique_ptr<WindowInitializer> windowInitializer;
     std::unique_ptr<DocumentManager> documentManager;
