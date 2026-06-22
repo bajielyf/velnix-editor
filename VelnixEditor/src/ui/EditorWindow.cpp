@@ -53,7 +53,7 @@ constexpr long kCustomKeywordIndicatorColors[kCustomKeywordIndicatorCount] = {
     0xFFD07A,
     0xD78CFF,
     0x66B8FF,
-    0xF2A4FF,
+    0x8e4898,
 };
 constexpr const char *kCustomKeywordColorKeys[kCustomKeywordIndicatorCount] = {
     "menu.highlight_yellow",
