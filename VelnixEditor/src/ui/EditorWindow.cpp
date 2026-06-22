@@ -2278,7 +2278,7 @@ void EditorWindow::updateCustomKeywordHighlightsForDocument(Document &doc,
 
   const sptr_t textLength =
       scintilla_send_message(SCINTILLA(target), SCI_GETTEXTLENGTH, 0, 0);
-  if (!force && doc.cachedCustomKeywordDocumentLength == textLength) {
+  if (!force && doc.cachedCustomKeywordDocumentLength == textLength) {  // TODO. Judging whether to update based solely on length may miss changes in content.
     return;
   }
 
