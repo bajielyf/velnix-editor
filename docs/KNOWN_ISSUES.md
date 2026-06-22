@@ -1,6 +1,6 @@
 # Velnix Editor Known Limitations
 
-This document records known limitations for the Velnix Editor 0.1.2 release.
+This document records known limitations for the Velnix Editor 0.1.3 release.
 
 ## 1. Search Responsiveness
 
@@ -39,9 +39,22 @@ Planned follow-up:
 - improve feedback for unsupported or partially handled drop payloads
 - expand validation for paths provided by desktop launchers and terminals
 
-## 4. Plugin Support
+## 4. Custom Keyword Highlight Refresh
 
-Velnix Editor 0.1.2 does not include a plugin system. This release keeps
+Custom keyword highlights are scoped to the current document and can be
+assigned or cleared by color. The current refresh cache primarily tracks
+document length, so a same-length content replacement may not always trigger an
+immediate custom-highlight refresh in every editing path.
+
+Planned follow-up:
+
+- track content revisions instead of relying primarily on document length
+- add focused tests for same-length replacements and highlight refresh
+- validate custom highlighting performance on large documents
+
+## 5. Plugin Support
+
+Velnix Editor 0.1.3 does not include a plugin system. This release keeps
 the extension boundary intentionally simple while the core editor behavior
 stabilizes.
 
@@ -51,7 +64,7 @@ Planned follow-up:
 - decide how plugins should be configured and packaged
 - document compatibility expectations before exposing a public plugin API
 
-## 5. End-User Documentation
+## 6. End-User Documentation
 
 The repository includes build, installation, testing, encoding, roadmap,
 third-party notice, changelog, and release documentation. A fuller end-user

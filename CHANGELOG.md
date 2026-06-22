@@ -2,6 +2,29 @@
 
 All notable project-level changes intended for published releases should be recorded in this file.
 
+## [0.1.3] - 2026-06-22
+
+Patch release focused on search and replace usability, per-document custom
+keyword highlighting, and dialog placement.
+
+### Added
+
+- Added backwards search controls to the find and replace dialogs.
+- Added per-document custom keyword highlighting with six selectable colors.
+- Added View-menu and editor context-menu actions to apply highlights and clear
+  them by color or all at once.
+
+### Changed
+
+- Changed the find and replace dialogs to non-modal windows so editing can
+  continue while they remain open.
+- Centered find, replace, preferences, and keyboard shortcut dialogs relative
+  to the main editor window when shown.
+
+### Fixed
+
+- Corrected the purple custom-highlight color value.
+
 ## [0.1.2] - 2026-05-27
 
 Patch release focused on file-opening workflows, macro playback reliability,

@@ -5,7 +5,7 @@
 This roadmap tracks the current state of Velnix Editor, the remaining work
 before the next release, and the likely direction after that release.
 
-Last updated: 2026-06-04
+Last updated: 2026-06-22
 
 ## Current Positioning
 
@@ -94,6 +94,7 @@ package name, executable name, and release process.
 ### 6. Search, Replace, Syntax, and Macros
 
 - Find and replace dialogs are implemented.
+- Find and replace dialogs are non-modal and support backwards search.
 - Find next, find previous, find all, replace next, and replace all are
   implemented.
 - Search result panel display, grouped interaction, and double-click navigation
@@ -104,6 +105,9 @@ package name, executable name, and release process.
   document. Normal selection highlighting is controlled by the smart keyword
   highlighting preference, which is disabled by default; double-click word
   selection still highlights matching occurrences.
+- Per-document custom keyword highlighting is implemented with six color
+  choices, View-menu and editor context-menu access, and clearing by color or
+  all at once.
 - Lexilla is integrated for syntax highlighting.
 - Lexer list loading, language-menu switching, and extension-based matching are
   implemented.
@@ -120,6 +124,8 @@ package name, executable name, and release process.
 - Preferences dialog is implemented.
 - Shortcut configuration dialog and basic conflict warning behavior are
   implemented.
+- Preferences and keyboard shortcut dialogs open centered on the main editor
+  window.
 
 ### 8. Internal Code Cleanup
 
@@ -232,14 +238,14 @@ package name, executable name, and release process.
 
 ## Milestones
 
-### M1: 0.1.2 Patch Release Cleanup
+### M1: 0.1.3 Patch Release Cleanup
 
-- Confirm release metadata for version `0.1.2`.
+- Confirm release metadata for version `0.1.3`.
 - Confirm package contents and installed files.
 - Complete build, test, package, and install validation.
 - Finish release notes and known limitations.
 
-### M2: Patch Release, 0.1.2
+### M2: Patch Release, 0.1.3
 
 - Publish package artifact.
 - Publish changelog and known issues.
