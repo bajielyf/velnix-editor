@@ -26,6 +26,7 @@ Build requirements:
 - CMake 3.16+
 - a C++17-capable compiler
 - GTK 3 development files
+- libcurl development files
 
 ```bash
 cmake -S . -B build

@@ -10,6 +10,13 @@ Requirements:
 - CMake 3.16 or newer
 - a C++17-capable compiler
 - GTK 3 development files
+- libcurl development files
+
+On Debian or Ubuntu, install the native dependencies with:
+
+```bash
+sudo apt install build-essential cmake pkg-config libgtk-3-dev libcurl4-openssl-dev
+```
 
 Build commands:
 
@@ -63,6 +70,8 @@ subproject uses that value during normal repository builds and only declares a
 fallback version when built standalone. Each release should still confirm that
 the package version, changelog, release tag, website metadata, and release notes
 all use the same value.
+The plain-text `docs/version.txt` file is the update metadata published by the
+project website and must contain that same release version.
 
 ## 4. Common Packaging Overrides
 

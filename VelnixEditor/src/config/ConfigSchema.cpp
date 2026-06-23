@@ -387,6 +387,19 @@ const ConfigItem ConfigDirectory{
     1024
 };
 
+const ConfigItem LastUpdateCheckDate{
+    "last_update_check_date",
+    "Last Update Check Date",
+    std::string(""),
+    "Local date of the most recent automatic update check",
+    "config",
+    {},
+    {},
+    {},
+    {},
+    10
+};
+
 // Editor Indentation Section
 const ConfigItem TabSize{
     "tab_size",
@@ -461,6 +474,7 @@ Registry::Registry() {
       &Items::SearchWrapAround,
       &Items::SearchAllDocuments,
       &Items::ConfigDirectory,
+      &Items::LastUpdateCheckDate,
       &Items::TabSize,
       &Items::UseSpacesForTabs,
       &Items::AutoIndent,

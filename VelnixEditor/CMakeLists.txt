@@ -10,6 +10,10 @@ include(GNUInstallDirs)
 
 set(VELNIX_EDITOR_VERSION "${CMAKE_PROJECT_VERSION}" CACHE STRING "Velnix Editor application version")
 set(VELNIX_HOMEPAGE "https://bajielyf.github.io/velnix-editor" CACHE STRING "Velnix Editor homepage URL")
+set(VELNIX_UPDATE_URL "${VELNIX_HOMEPAGE}/version.txt" CACHE STRING "Velnix Editor update metadata URL")
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CURL REQUIRED IMPORTED_TARGET libcurl)
 
 # When built standalone, pull in the editor libraries from sibling directories.
 if(NOT TARGET scintilla)
@@ -25,6 +29,7 @@ add_executable(velnix_editor
     src/app/main.cpp
     src/core/EditorTypes.cpp
     src/core/Logger.cpp
+    src/core/UpdateChecker.cpp
     src/ui/EditorWindow.cpp
     src/ui/EventHandler.cpp
     src/ui/Localization.cpp
@@ -66,6 +71,7 @@ target_compile_definitions(velnix_editor
     PRIVATE
         VELNIX_EDITOR_VERSION="${VELNIX_EDITOR_VERSION}"
         VELNIX_HOMEPAGE="${VELNIX_HOMEPAGE}"
+        VELNIX_UPDATE_URL="${VELNIX_UPDATE_URL}"
         VELNIX_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
         VELNIX_ASSET_DIR="${CMAKE_INSTALL_FULL_DATADIR}/velnix-editor/assets"
 )
@@ -74,6 +80,7 @@ target_link_libraries(velnix_editor
     PRIVATE
         scintilla
         lexilla
+        PkgConfig::CURL
 )
 
 add_executable(test_gtk src/test_gtk.cpp)
@@ -117,6 +124,29 @@ add_executable(test_config_store
     src/config/ConfigStore.cpp
     src/config/ConfigSchema.cpp
     src/test/ConfigStoreTest.cpp
+)
+
+add_executable(test_update_checker
+    src/core/UpdateChecker.cpp
+    src/test/UpdateCheckerTest.cpp
+)
+
+target_include_directories(test_update_checker
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${GTK3_INCLUDE_DIRS}
+)
+
+target_compile_definitions(test_update_checker
+    PRIVATE
+        VELNIX_EDITOR_VERSION="${VELNIX_EDITOR_VERSION}"
+        VELNIX_UPDATE_URL="${VELNIX_UPDATE_URL}"
+)
+
+target_link_libraries(test_update_checker
+    PRIVATE
+        PkgConfig::CURL
+        ${GTK3_LIBRARIES}
 )
 
 target_include_directories(test_config_store

@@ -900,9 +900,14 @@ EditorWindow::FileMenuItems WindowInitializer::buildMenuBar(
 
   GtkWidget *helpMenu = gtk_menu_new();
   GtkWidget *helpItem = localized_menu_item("menu.help");
+  GtkWidget *checkUpdatesItem = localized_menu_item("menu.check_updates");
   GtkWidget *aboutItem = localized_menu_item("menu.about");
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(helpItem), helpMenu);
+  gtk_menu_shell_append(GTK_MENU_SHELL(helpMenu), checkUpdatesItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(helpMenu), gtk_separator_menu_item_new());
   gtk_menu_shell_append(GTK_MENU_SHELL(helpMenu), aboutItem);
+  g_signal_connect(checkUpdatesItem, "activate",
+                   G_CALLBACK(on_check_updates_activate), editorWindow);
   g_signal_connect(aboutItem, "activate",
                    G_CALLBACK(on_about_activate), editorWindow);
 
@@ -971,6 +976,9 @@ EditorWindow::FileMenuItems WindowInitializer::buildMenuBar(
       {"Keyboard Shortcuts", settingsItems.shortcutConfigItem, GDK_KEY_K,
        static_cast<GdkModifierType>(GDK_CONTROL_MASK | GDK_SHIFT_MASK),
        "Ctrl+Shift+K"},
+      {"Check for Updates", checkUpdatesItem, GDK_KEY_u,
+       static_cast<GdkModifierType>(GDK_CONTROL_MASK | GDK_MOD1_MASK),
+       "Ctrl+Alt+U"},
       {"About", aboutItem, GDK_KEY_F1, static_cast<GdkModifierType>(0),
        "F1"}});
 
@@ -1112,6 +1120,12 @@ void WindowInitializer::on_about_activate(GtkWidget *widget, gpointer data) {
   gtk_widget_show_all(dialog);
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
+}
+
+void WindowInitializer::on_check_updates_activate(GtkWidget *widget,
+                                                   gpointer data) {
+  (void)widget;
+  static_cast<EditorWindow *>(data)->checkForUpdates(true);
 }
 
 void WindowInitializer::setupLayout(

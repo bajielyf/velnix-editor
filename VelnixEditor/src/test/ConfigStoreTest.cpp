@@ -76,6 +76,7 @@ void test_save_and_reload_config() {
   store.set_bool("search_all_documents", true);
   store.set_string("config_directory", "/tmp/newdir");
   store.set_string("last_file_dialog_dir", "/tmp/lastdir");
+  store.set_string("last_update_check_date", "2026-06-22");
   bool saved = store.save();
   assert(saved == true);
 
@@ -105,6 +106,7 @@ void test_save_and_reload_config() {
   assert(reload.get_bool("search_all_documents") == true);
   assert(reload.get_string("config_directory") == "/tmp/newdir");
   assert(reload.get_string("last_file_dialog_dir") == "/tmp/lastdir");
+  assert(reload.get_string("last_update_check_date") == "2026-06-22");
 
   remove_file(path);
   std::cout << "[PASS] test_save_and_reload_config\n";

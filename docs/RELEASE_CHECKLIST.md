@@ -8,6 +8,7 @@ Use this checklist when preparing a Velnix Editor release.
 - [ ] Confirm the version is consistent across build, packaging, website, and docs
 - [ ] Record the release content in [CHANGELOG.md](../CHANGELOG.md)
 - [ ] Prepare release notes under `docs/RELEASE_NOTES_<version>.md`
+- [ ] Update `docs/version.txt` to the release version
 
 ## 2. Build and Test
 

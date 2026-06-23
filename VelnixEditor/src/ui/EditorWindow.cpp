@@ -12,6 +12,7 @@
 #include "config/ConfigPaths.h"
 #include "editor/DocumentState.h"
 #include "core/Logger.h"
+#include "core/UpdateChecker.h"
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -32,6 +33,7 @@ constexpr int kMinAutoSaveInterval = 10;
 constexpr int kMaxAutoSaveInterval = 300;
 constexpr int kMinLongLineColumn = 0;
 constexpr int kMaxLongLineColumn = 240;
+constexpr guint kStartupUpdateDelaySeconds = 2;
 constexpr long kCaretLineBackground = 0xFFF6D8;
 constexpr long kIndentGuideForeground = 0xD0D0D0;
 constexpr long kEdgeColumnColor = 0xE7E7E7;
@@ -799,6 +801,15 @@ gboolean on_auto_save_timeout(gpointer data) {
   return G_SOURCE_CONTINUE;
 }
 
+std::string current_local_date() {
+  GDateTime *now = g_date_time_new_now_local();
+  gchar *formatted = g_date_time_format(now, "%F");
+  std::string date = formatted ? formatted : "";
+  g_free(formatted);
+  g_date_time_unref(now);
+  return date;
+}
+
 }  // namespace
 
 EditorWindow::EditorWindow(const std::vector<std::string> &startupFiles) {
@@ -831,6 +842,11 @@ EditorWindow::EditorWindow(const std::vector<std::string> &startupFiles) {
 }
 
 EditorWindow::~EditorWindow() {
+  updateCheckLifetime.reset();
+  if (startupUpdateTimerId != 0) {
+    g_source_remove(startupUpdateTimerId);
+    startupUpdateTimerId = 0;
+  }
   if (fileStateRefreshTimerId != 0) {
     g_source_remove(fileStateRefreshTimerId);
     fileStateRefreshTimerId = 0;
@@ -846,6 +862,146 @@ void EditorWindow::show() {
   if (searchManager) {
     searchManager->hide_search_results_panel();
   }
+  startupUpdateTimerId = g_timeout_add_seconds(
+      kStartupUpdateDelaySeconds,
+      [](gpointer data) -> gboolean {
+        auto *editorWindow = static_cast<EditorWindow *>(data);
+        editorWindow->startupUpdateTimerId = 0;
+        editorWindow->checkForUpdates(false);
+        return G_SOURCE_REMOVE;
+      },
+      this);
+}
+
+void EditorWindow::checkForUpdates(bool manualCheck) {
+  const auto showProgress = [this] {
+    if (updateProgressDialog) {
+      return;
+    }
+    updateProgressDialog = gtk_message_dialog_new(
+        getDialogParentWindow(),
+        static_cast<GtkDialogFlags>(GTK_DIALOG_MODAL |
+                                    GTK_DIALOG_DESTROY_WITH_PARENT),
+        GTK_MESSAGE_INFO, GTK_BUTTONS_NONE, "%s",
+        Localization::text("update.checking"));
+    g_object_add_weak_pointer(
+        G_OBJECT(updateProgressDialog),
+        reinterpret_cast<gpointer *>(&updateProgressDialog));
+    gtk_widget_show(updateProgressDialog);
+  };
+
+  if (updateCheckInProgress) {
+    if (manualCheck) {
+      updateCheckManualResultRequested = true;
+      showProgress();
+    }
+    return;
+  }
+
+  const std::string today = current_local_date();
+  if (!manualCheck && lastUpdateCheckDate == today) {
+    return;
+  }
+
+  if (!manualCheck) {
+    lastUpdateCheckDate = today;
+    if (settingsManager) {
+      settingsManager->save_settings();
+    }
+  } else {
+    updateCheckManualResultRequested = true;
+    showProgress();
+  }
+
+  updateCheckInProgress = true;
+  const std::weak_ptr<int> lifetime = updateCheckLifetime;
+  UpdateChecker::checkAsync(
+      [this, lifetime](UpdateChecker::Result result) {
+        if (lifetime.expired()) {
+          return;
+        }
+        const bool showManualResult = updateCheckManualResultRequested;
+        updateCheckManualResultRequested = false;
+        updateCheckInProgress = false;
+        if (updateProgressDialog) {
+          gtk_widget_destroy(updateProgressDialog);
+        }
+        if (!result.success) {
+          if (showManualResult) {
+            showUpdateError(result.errorMessage);
+          }
+          return;
+        }
+        showUpdateResult(result.latestVersion, showManualResult);
+      });
+}
+
+void EditorWindow::showUpdateResult(const std::string &latestVersion,
+                                    bool manualCheck) {
+  if (!UpdateChecker::isNewerVersion(latestVersion, VELNIX_EDITOR_VERSION)) {
+    if (!manualCheck) {
+      return;
+    }
+    gchar *detail = g_strdup_printf(
+        Localization::text("update.up_to_date_detail"), VELNIX_EDITOR_VERSION);
+    GtkWidget *dialog = gtk_message_dialog_new(
+        getDialogParentWindow(),
+        static_cast<GtkDialogFlags>(GTK_DIALOG_MODAL |
+                                    GTK_DIALOG_DESTROY_WITH_PARENT),
+        GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "%s",
+        Localization::text("update.up_to_date"));
+    gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), "%s",
+                                             detail);
+    g_free(detail);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+    return;
+  }
+
+  gchar *primary = g_strdup_printf(Localization::text("update.available"),
+                                   latestVersion.c_str());
+  gchar *detail = g_strdup_printf(Localization::text("update.available_detail"),
+                                  VELNIX_EDITOR_VERSION);
+  GtkWidget *dialog = gtk_message_dialog_new(
+      getDialogParentWindow(),
+      static_cast<GtkDialogFlags>(GTK_DIALOG_MODAL |
+                                  GTK_DIALOG_DESTROY_WITH_PARENT),
+      GTK_MESSAGE_INFO, GTK_BUTTONS_NONE, "%s", primary);
+  gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), "%s",
+                                           detail);
+  gtk_dialog_add_button(GTK_DIALOG(dialog), Localization::text("update.later"),
+                        GTK_RESPONSE_CANCEL);
+  gtk_dialog_add_button(GTK_DIALOG(dialog),
+                        Localization::text("update.open_homepage"),
+                        GTK_RESPONSE_ACCEPT);
+  g_free(primary);
+  g_free(detail);
+
+  if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+    GError *error = nullptr;
+    if (!gtk_show_uri_on_window(getDialogParentWindow(), VELNIX_HOMEPAGE,
+                                GDK_CURRENT_TIME, &error)) {
+      const std::string message = error ? error->message : "Unknown error";
+      g_clear_error(&error);
+      gtk_widget_destroy(dialog);
+      showUpdateError(message);
+      return;
+    }
+  }
+  gtk_widget_destroy(dialog);
+}
+
+void EditorWindow::showUpdateError(const std::string &message) {
+  GtkWidget *dialog = gtk_message_dialog_new(
+      getDialogParentWindow(),
+      static_cast<GtkDialogFlags>(GTK_DIALOG_MODAL |
+                                  GTK_DIALOG_DESTROY_WITH_PARENT),
+      GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s",
+      Localization::text("update.failed"));
+  gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), "%s",
+                                           message.c_str());
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
 }
 
 GtkWidget *EditorWindow::get_window() { return window; }
@@ -2793,11 +2949,15 @@ void EditorWindow::loadConfigFromStore(const ConfigStore &store) {
   if (!configuredConfigDir.empty()) {
     config.configDir = configuredConfigDir;
   }
+  lastUpdateCheckDate =
+      store.get_string(ConfigSchema::Items::LastUpdateCheckDate.key);
   applyConfigState(config);
 }
 
 void EditorWindow::saveConfigToStore(ConfigStore &store) const {
   const ConfigState config = getConfigState();
+  store.set_string(ConfigSchema::Items::LastUpdateCheckDate.key,
+                   lastUpdateCheckDate);
   store.set_bool(ConfigSchema::Items::UseRecentFiles.key, config.useRecentFiles);
   store.set_int(ConfigSchema::Items::MaxRecentFiles.key, config.maxRecentFiles);
   store.set_bool(ConfigSchema::Items::ShowLineNumbers.key, config.showLineNumbers);

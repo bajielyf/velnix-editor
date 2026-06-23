@@ -72,6 +72,7 @@ extern const ConfigItem SyntaxHighlightingEnabled;
 extern const ConfigItem UseRecentFiles;
 extern const ConfigItem MaxRecentFiles;
 extern const ConfigItem LastFileDialogDir;
+extern const ConfigItem LastUpdateCheckDate;
 
 // Editor Behavior Section
 extern const ConfigItem AutoSave;

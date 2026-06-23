@@ -107,6 +107,7 @@ public:
     ~EditorWindow();
 
     void show();
+    void checkForUpdates(bool manualCheck = true);
     GtkWidget *get_window();
     void installWindowComponents(const WindowComponents &components);
     void registerFileMenuItems(const FileMenuItems &items);
@@ -436,6 +437,8 @@ private:
     void applyEditorBehaviorSettings(GtkWidget *scintilla = nullptr);
     void applyColumnEditorSettings(GtkWidget *scintilla = nullptr);
     bool restoreSession();
+    void showUpdateResult(const std::string &latestVersion, bool manualCheck);
+    void showUpdateError(const std::string &message);
     void updateBraceHighlighting(GtkWidget *scintilla = nullptr);
     void updateCurrentColumnHighlight(GtkWidget *scintilla = nullptr);
     void updateSelectedKeywordHighlight(GtkWidget *scintilla = nullptr);
@@ -489,6 +492,7 @@ private:
     std::string configDir;
     std::string shortcutsFilePath;
     std::string lastFileDialogDir;
+    std::string lastUpdateCheckDate;
     std::string uiLanguage = "en";
     bool useRecentFiles = true;
     int maxRecentFiles = 5;
@@ -527,6 +531,11 @@ private:
     int nextBufferId = 1;
     guint fileStateRefreshTimerId = 0;
     guint autoSaveTimerId = 0;
+    guint startupUpdateTimerId = 0;
+    bool updateCheckInProgress = false;
+    bool updateCheckManualResultRequested = false;
+    GtkWidget *updateProgressDialog = nullptr;
+    std::shared_ptr<int> updateCheckLifetime = std::make_shared<int>(0);
     std::vector<ShortcutBinding> shortcutBindings;
     bool wordWrapEnabled = false;
     bool fullscreenMode = false;

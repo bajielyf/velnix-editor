@@ -15,6 +15,7 @@ public:
     static void on_preferences_activate(GtkWidget *widget, gpointer data);
     static void on_shortcuts_activate(GtkWidget *widget, gpointer data);
     static void on_about_activate(GtkWidget *widget, gpointer data);
+    static void on_check_updates_activate(GtkWidget *widget, gpointer data);
 
 private:
     EditorWindow::WindowComponents createWindowComponents();
