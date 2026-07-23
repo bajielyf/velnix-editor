@@ -1505,6 +1505,113 @@ void EditorWindow::showEditorContextMenu(GtkWidget *widget,
   }
 
   GtkWidget *menu = gtk_menu_new();
+  const auto localizedMenuItem = [](const char *key) {
+    GtkWidget *item =
+        gtk_menu_item_new_with_label(Localization::text(key));
+    Localization::bind_widget_text(item, key);
+    return item;
+  };
+  const auto localizedCheckMenuItem = [](const char *key) {
+    GtkWidget *item =
+        gtk_check_menu_item_new_with_label(Localization::text(key));
+    Localization::bind_widget_text(item, key);
+    return item;
+  };
+
+  GtkWidget *undoItem = localizedMenuItem("menu.undo");
+  GtkWidget *redoItem = localizedMenuItem("menu.redo");
+  GtkWidget *cutItem = localizedMenuItem("menu.cut");
+  GtkWidget *copyItem = localizedMenuItem("menu.copy");
+  GtkWidget *pasteItem = localizedMenuItem("menu.paste");
+  GtkWidget *columnEditorItem =
+      localizedCheckMenuItem("menu.column_editor");
+  GtkWidget *convertCaseItem = localizedMenuItem("menu.convert_case");
+  GtkWidget *convertCaseMenu = gtk_menu_new();
+  GtkWidget *uppercaseItem = localizedMenuItem("menu.uppercase");
+  GtkWidget *lowercaseItem = localizedMenuItem("menu.lowercase");
+  GtkWidget *titleCaseItem = localizedMenuItem("menu.title_case");
+  GtkWidget *blankOperationsItem =
+      localizedMenuItem("menu.blank_operations");
+  GtkWidget *blankOperationsMenu = gtk_menu_new();
+  GtkWidget *trimTrailingWhitespaceItem =
+      localizedMenuItem("menu.trim_trailing_whitespace");
+  GtkWidget *spacesToTabsItem = localizedMenuItem("menu.spaces_to_tabs");
+  GtkWidget *tabsToSpacesItem = localizedMenuItem("menu.tabs_to_spaces");
+
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(convertCaseItem), convertCaseMenu);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(blankOperationsItem),
+                            blankOperationsMenu);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(columnEditorItem),
+                                 isColumnEditorEnabled());
+
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), undoItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), redoItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), gtk_separator_menu_item_new());
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), cutItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), copyItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), pasteItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), gtk_separator_menu_item_new());
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), columnEditorItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), convertCaseItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), blankOperationsItem);
+
+  gtk_menu_shell_append(GTK_MENU_SHELL(convertCaseMenu), uppercaseItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(convertCaseMenu), lowercaseItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(convertCaseMenu), titleCaseItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(blankOperationsMenu),
+                        trimTrailingWhitespaceItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(blankOperationsMenu),
+                        spacesToTabsItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(blankOperationsMenu),
+                        tabsToSpacesItem);
+
+  g_signal_connect(undoItem, "activate",
+                   G_CALLBACK(EventHandler::on_undo_activate), this);
+  g_signal_connect(redoItem, "activate",
+                   G_CALLBACK(EventHandler::on_redo_activate), this);
+  g_signal_connect(cutItem, "activate",
+                   G_CALLBACK(EventHandler::on_cut_activate), this);
+  g_signal_connect(copyItem, "activate",
+                   G_CALLBACK(EventHandler::on_copy_activate), this);
+  g_signal_connect(pasteItem, "activate",
+                   G_CALLBACK(EventHandler::on_paste_activate), this);
+  g_signal_connect(columnEditorItem, "toggled",
+                   G_CALLBACK(EventHandler::on_column_editor_toggled), this);
+  g_signal_connect(uppercaseItem, "activate",
+                   G_CALLBACK(EventHandler::on_uppercase_activate), this);
+  g_signal_connect(lowercaseItem, "activate",
+                   G_CALLBACK(EventHandler::on_lowercase_activate), this);
+  g_signal_connect(titleCaseItem, "activate",
+                   G_CALLBACK(EventHandler::on_title_case_activate), this);
+  g_signal_connect(
+      trimTrailingWhitespaceItem, "activate",
+      G_CALLBACK(EventHandler::on_trim_trailing_whitespace_activate), this);
+  g_signal_connect(spacesToTabsItem, "activate",
+                   G_CALLBACK(EventHandler::on_spaces_to_tabs_activate), this);
+  g_signal_connect(tabsToSpacesItem, "activate",
+                   G_CALLBACK(EventHandler::on_tabs_to_spaces_activate), this);
+
+  const bool readOnly =
+      scintilla_send_message(SCINTILLA(widget), SCI_GETREADONLY, 0, 0) != 0;
+  const bool hasSelection =
+      scintilla_send_message(SCINTILLA(widget), SCI_GETSELECTIONEMPTY, 0, 0) ==
+      0;
+  gtk_widget_set_sensitive(
+      undoItem,
+      scintilla_send_message(SCINTILLA(widget), SCI_CANUNDO, 0, 0) != 0);
+  gtk_widget_set_sensitive(
+      redoItem,
+      scintilla_send_message(SCINTILLA(widget), SCI_CANREDO, 0, 0) != 0);
+  gtk_widget_set_sensitive(cutItem, hasSelection && !readOnly);
+  gtk_widget_set_sensitive(copyItem, hasSelection);
+  gtk_widget_set_sensitive(
+      pasteItem,
+      !readOnly &&
+          scintilla_send_message(SCINTILLA(widget), SCI_CANPASTE, 0, 0) != 0);
+  gtk_widget_set_sensitive(convertCaseItem, hasSelection && !readOnly);
+  gtk_widget_set_sensitive(blankOperationsItem, !readOnly);
+
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), gtk_separator_menu_item_new());
   GtkWidget *highlightItem =
       gtk_menu_item_new_with_label(Localization::text("menu.highlight"));
   Localization::bind_widget_text(highlightItem, "menu.highlight");
