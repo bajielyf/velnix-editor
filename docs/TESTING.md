@@ -23,6 +23,7 @@ The project currently defines these test-related targets in
 - `test_document_state`
 - `test_config_store`
 - `test_document_operations`
+- `test_update_checker`
 
 Build them explicitly when preparing a release:
 
@@ -31,6 +32,7 @@ cmake --build build --target test_gtk -j4
 cmake --build build --target test_document_state -j4
 cmake --build build --target test_config_store -j4
 cmake --build build --target test_document_operations -j4
+cmake --build build --target test_update_checker -j4
 ```
 
 ## 3. Run Non-GUI Tests
@@ -41,6 +43,7 @@ After building, run the non-GUI test binaries directly:
 ./build/VelnixEditor/test_document_state
 ./build/VelnixEditor/test_config_store
 ./build/VelnixEditor/test_document_operations
+./build/VelnixEditor/test_update_checker
 ```
 
 These binaries are not currently registered with CTest. If CTest integration is
@@ -56,12 +59,14 @@ Before a release, run the main editor and verify the following flow:
 - create a new document
 - open an existing text file
 - edit and save the document
+- open the editor context menu and exercise the available editing actions
 - use find and replace
 - verify selected-keyword highlighting: normal selection follows the smart
   highlight preference, while double-click word selection highlights matching
   occurrences
 - switch syntax highlighting by language or file extension
 - convert encoding through the `Encoding` menu
+- run **Check for Updates** from the Help menu and confirm the result dialog
 - close and reopen the application to confirm configuration persistence
 
 ## 5. Packaging Smoke Test

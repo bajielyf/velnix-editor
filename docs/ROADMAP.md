@@ -5,7 +5,7 @@
 This roadmap tracks the current state of Velnix Editor, the remaining work
 before the next release, and the likely direction after that release.
 
-Last updated: 2026-06-22
+Last updated: 2026-07-23
 
 ## Current Positioning
 
@@ -62,6 +62,8 @@ package name, executable name, and release process.
 - Scintilla is integrated as the editing component.
 - Undo, redo, cut, copy, paste, word wrap, line numbers, and basic styling are
   implemented.
+- The editor context menu exposes common editing, column selection, case
+  conversion, whitespace, and custom-highlighting actions.
 
 ### 4. Document Management and File State
 
@@ -126,6 +128,8 @@ package name, executable name, and release process.
   implemented.
 - Preferences and keyboard shortcut dialogs open centered on the main editor
   window.
+- Automatic daily and manual update checks retrieve release metadata
+  asynchronously from the project website.
 
 ### 8. Internal Code Cleanup
 
@@ -190,7 +194,8 @@ package name, executable name, and release process.
 
 ### 4. Product Polish for Release
 
-- Add or finalize application icon assets.
+- Confirm application icon assets remain consistent across the website,
+  desktop entry, and package.
 - Confirm desktop entry metadata and package description.
 - Review about dialog text and public website/repository URL.
 - Confirm startup behavior and first-run experience.
@@ -224,8 +229,7 @@ package name, executable name, and release process.
 - Continue improving the bottom status bar with more useful document state and
   editor mode details, including total document character count, selected
   character count, and the current language/syntax state.
-- Add editor right-click context menu actions for common editing and document
-  workflows.
+- Continue expanding editor context-menu coverage for document-level workflows.
 
 ### Low Priority
 
@@ -238,14 +242,14 @@ package name, executable name, and release process.
 
 ## Milestones
 
-### M1: 0.1.3 Patch Release Cleanup
+### M1: 0.1.4 Patch Release Cleanup
 
-- Confirm release metadata for version `0.1.3`.
+- Confirm release metadata for version `0.1.4`.
 - Confirm package contents and installed files.
 - Complete build, test, package, and install validation.
 - Finish release notes and known limitations.
 
-### M2: Patch Release, 0.1.3
+### M2: Patch Release, 0.1.4
 
 - Publish package artifact.
 - Publish changelog and known issues.
@@ -258,7 +262,7 @@ package name, executable name, and release process.
 - Continue refining the search box interaction model and visible search states.
 - Improve preferences and shortcut configuration experience.
 - Improve the bottom status bar with character statistics and current
-  language/syntax state, and add editor right-click context menu workflows.
+  language/syntax state, and expand editor context-menu workflows.
 - Add first-pass theme customization.
 - Add more complete editing behavior controls.
 

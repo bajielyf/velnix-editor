@@ -1,6 +1,6 @@
 # Velnix Editor Known Limitations
 
-This document records known limitations for the Velnix Editor 0.1.3 release.
+This document records known limitations for the Velnix Editor 0.1.4 release.
 
 ## 1. Search Responsiveness
 
@@ -52,9 +52,22 @@ Planned follow-up:
 - add focused tests for same-length replacements and highlight refresh
 - validate custom highlighting performance on large documents
 
-## 5. Plugin Support
+## 5. Update Checks
 
-Velnix Editor 0.1.3 does not include a plugin system. This release keeps
+Update checks retrieve a plain-text version from the project website and
+therefore require working network access. Automatic check failures remain
+silent to avoid interrupting startup; manual checks report the failure.
+
+Planned follow-up:
+
+- provide a user-facing preference for automatic update checks
+- improve diagnostics for proxy, TLS, and connectivity failures
+- consider publishing signed update metadata if the workflow expands beyond
+  version discovery
+
+## 6. Plugin Support
+
+Velnix Editor 0.1.4 does not include a plugin system. This release keeps
 the extension boundary intentionally simple while the core editor behavior
 stabilizes.
 
@@ -64,7 +77,7 @@ Planned follow-up:
 - decide how plugins should be configured and packaged
 - document compatibility expectations before exposing a public plugin API
 
-## 6. End-User Documentation
+## 7. End-User Documentation
 
 The repository includes build, installation, testing, encoding, roadmap,
 third-party notice, changelog, and release documentation. A fuller end-user

@@ -14,7 +14,8 @@ Use this checklist when preparing a Velnix Editor release.
 
 - [ ] Build from source and confirm `velnix-editor` is generated
 - [ ] Build `test_gtk`
-- [ ] Build `test_document_state`, `test_config_store`, and `test_document_operations`
+- [ ] Build `test_document_state`, `test_config_store`,
+  `test_document_operations`, and `test_update_checker`
 - [ ] Run available non-GUI test targets documented in [TESTING.md](TESTING.md)
 - [ ] Run the key manual test or validation flow
 
@@ -37,6 +38,8 @@ Use this checklist when preparing a Velnix Editor release.
 - [ ] Optional command-line file arguments append after restored session tabs
 - [ ] Macro recording, playback, and management
 - [ ] External file modification detection and reload
+- [ ] Editor context-menu action availability and behavior
+- [ ] Manual update check and daily automatic-check behavior
 
 ## 5. Documentation and Release Materials
 

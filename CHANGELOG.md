@@ -2,6 +2,26 @@
 
 All notable project-level changes intended for published releases should be recorded in this file.
 
+## [0.1.4] - 2026-07-23
+
+Patch release focused on update discovery, faster access to common editing
+actions, and refreshed application branding.
+
+### Added
+
+- Added asynchronous update checks against the published website version
+  metadata.
+- Added a daily startup update check and a manual **Check for Updates** action
+  in the Help menu.
+- Added undo, redo, cut, copy, paste, column editing, case conversion, and
+  whitespace operations to the editor context menu.
+- Added context-sensitive availability for editor context-menu actions based
+  on selection, clipboard, read-only, and undo/redo state.
+
+### Changed
+
+- Refreshed the application logo asset.
+
 ## [0.1.3] - 2026-06-22
 
 Patch release focused on search and replace usability, per-document custom
