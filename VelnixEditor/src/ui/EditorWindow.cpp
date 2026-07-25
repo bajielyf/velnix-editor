@@ -2695,14 +2695,21 @@ void EditorWindow::update_status_bar() {
     }
   }
 
-  std::string status = "Encoding: ";
+  std::string status = Localization::text("status.encoding");
+  status += ": ";
   status += encodingText;
-  status += "    EOL: ";
+  status += "    ";
+  status += Localization::text("status.eol");
+  status += ": ";
   status += eolText;
-  status += "    Language: ";
+  status += "    ";
+  status += Localization::text("status.language");
+  status += ": ";
   status += languageText;
   if (doc && doc->readOnly) {
-    status += "    [Read Only]";
+    status += "    [";
+    status += Localization::text("status.read_only");
+    status += "]";
   }
   gtk_label_set_text(GTK_LABEL(statusBarLabel), status.c_str());
 }
