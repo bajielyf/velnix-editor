@@ -2668,6 +2668,17 @@ void EditorWindow::update_status_bar() {
   Document *doc = documentManager ? documentManager->getCurrentDocument() : nullptr;
   const char *encodingText =
       doc ? encoding_display_name(doc->encoding, doc->useBom) : "Unknown";
+  std::string languageText = "Plain Text";
+  if (doc && !doc->lexerName.empty()) {
+    const auto &lexers = getAvailableLexers();
+    const auto lexer =
+        std::find_if(lexers.begin(), lexers.end(),
+                     [doc](const LexerDefinition &definition) {
+                       return definition.name == doc->lexerName;
+                     });
+    languageText =
+        lexer != lexers.end() ? lexer->description : doc->lexerName;
+  }
   const char *eolText = "LF";
   if (doc) {
     switch (doc->eolMode) {
@@ -2688,6 +2699,8 @@ void EditorWindow::update_status_bar() {
   status += encodingText;
   status += "    EOL: ";
   status += eolText;
+  status += "    Language: ";
+  status += languageText;
   if (doc && doc->readOnly) {
     status += "    [Read Only]";
   }

@@ -262,6 +262,7 @@ public:
             GtkWidget *scintilla = getCurrentScintilla();
             applyLineNumberStyle(scintilla, true);
             applyEditorBehaviorSettings(scintilla);
+            update_status_bar();
         }
     }
 
@@ -271,6 +272,7 @@ public:
             GtkWidget *scintilla = getCurrentScintilla();
             applyLineNumberStyle(scintilla, true);
             applyEditorBehaviorSettings(scintilla);
+            update_status_bar();
         }
     }
 
@@ -280,6 +282,7 @@ public:
             GtkWidget *scintilla = getCurrentScintilla();
             applyLineNumberStyle(scintilla, true);
             applyEditorBehaviorSettings(scintilla);
+            update_status_bar();
         }
     }
 
