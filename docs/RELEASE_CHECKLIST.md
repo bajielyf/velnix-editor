@@ -62,6 +62,11 @@ Use this checklist when preparing a Velnix Editor release.
 
 ## 7. Release Follow-Up
 
-- [ ] Prepare the tag for the release version
+- [ ] Create a `v<version>` tag matching the version in `CMakeLists.txt`
+- [ ] Push the tag and confirm the GitHub Actions release workflow succeeds
+- [ ] Confirm the GitHub Release description matches the corresponding
+  `CHANGELOG.md` version section
+- [ ] Confirm the GitHub Release contains the `.deb`, `SHA256SUMS`, and
+  `CHANGELOG.md` assets
 - [ ] Prepare release announcement or release notes
 - [ ] List known issues and follow-up plans for the next version

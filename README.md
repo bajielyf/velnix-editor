@@ -95,6 +95,23 @@ Build a local Debian package:
 
 The generated package is written to `dist/`.
 
+## Release
+
+Pushes to `main` and pull requests are built automatically by GitHub Actions.
+To publish a GitHub Release, first make sure the version in `CMakeLists.txt`
+and `CHANGELOG.md` is current, then push a matching version tag:
+
+```bash
+git tag v0.1.4
+git push origin v0.1.4
+```
+
+The tag must match the CMake project version. A successful tagged build
+uses the matching version section from `CHANGELOG.md` as the release
+description, and publishes every file generated under `dist/` as a GitHub
+Release asset. This currently includes the Debian package, `SHA256SUMS`, and
+`CHANGELOG.md`.
+
 ## Runtime Data
 
 User configuration is stored under `~/.config/velnix-editor/` by default.
