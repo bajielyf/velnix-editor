@@ -1540,10 +1540,18 @@ void EditorWindow::showEditorContextMenu(GtkWidget *widget,
       localizedMenuItem("menu.trim_trailing_whitespace");
   GtkWidget *spacesToTabsItem = localizedMenuItem("menu.spaces_to_tabs");
   GtkWidget *tabsToSpacesItem = localizedMenuItem("menu.tabs_to_spaces");
+  GtkWidget *eolConversionItem =
+      localizedMenuItem("menu.eol_conversion");
+  GtkWidget *eolConversionMenu = gtk_menu_new();
+  GtkWidget *eolLfItem = localizedMenuItem("menu.eol_lf");
+  GtkWidget *eolCrlfItem = localizedMenuItem("menu.eol_crlf");
+  GtkWidget *eolCrItem = localizedMenuItem("menu.eol_cr");
 
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(convertCaseItem), convertCaseMenu);
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(blankOperationsItem),
                             blankOperationsMenu);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(eolConversionItem),
+                            eolConversionMenu);
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(columnEditorItem),
                                  isColumnEditorEnabled());
 
@@ -1557,6 +1565,8 @@ void EditorWindow::showEditorContextMenu(GtkWidget *widget,
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), columnEditorItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), convertCaseItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), blankOperationsItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), gtk_separator_menu_item_new());
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), eolConversionItem);
 
   gtk_menu_shell_append(GTK_MENU_SHELL(convertCaseMenu), uppercaseItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(convertCaseMenu), lowercaseItem);
@@ -1567,6 +1577,16 @@ void EditorWindow::showEditorContextMenu(GtkWidget *widget,
                         spacesToTabsItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(blankOperationsMenu),
                         tabsToSpacesItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(eolConversionMenu), eolLfItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(eolConversionMenu), eolCrlfItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(eolConversionMenu), eolCrItem);
+
+  g_object_set_data(G_OBJECT(eolLfItem), "target-eol-mode",
+                    GINT_TO_POINTER(static_cast<int>(EolMode::Lf)));
+  g_object_set_data(G_OBJECT(eolCrlfItem), "target-eol-mode",
+                    GINT_TO_POINTER(static_cast<int>(EolMode::CrLf)));
+  g_object_set_data(G_OBJECT(eolCrItem), "target-eol-mode",
+                    GINT_TO_POINTER(static_cast<int>(EolMode::Cr)));
 
   g_signal_connect(undoItem, "activate",
                    G_CALLBACK(EventHandler::on_undo_activate), this);
@@ -1593,6 +1613,12 @@ void EditorWindow::showEditorContextMenu(GtkWidget *widget,
                    G_CALLBACK(EventHandler::on_spaces_to_tabs_activate), this);
   g_signal_connect(tabsToSpacesItem, "activate",
                    G_CALLBACK(EventHandler::on_tabs_to_spaces_activate), this);
+  g_signal_connect(eolLfItem, "activate",
+                   G_CALLBACK(EventHandler::on_convert_eol_activate), this);
+  g_signal_connect(eolCrlfItem, "activate",
+                   G_CALLBACK(EventHandler::on_convert_eol_activate), this);
+  g_signal_connect(eolCrItem, "activate",
+                   G_CALLBACK(EventHandler::on_convert_eol_activate), this);
 
   const bool readOnly =
       scintilla_send_message(SCINTILLA(widget), SCI_GETREADONLY, 0, 0) != 0;
@@ -1613,6 +1639,7 @@ void EditorWindow::showEditorContextMenu(GtkWidget *widget,
           scintilla_send_message(SCINTILLA(widget), SCI_CANPASTE, 0, 0) != 0);
   gtk_widget_set_sensitive(convertCaseItem, hasSelection && !readOnly);
   gtk_widget_set_sensitive(blankOperationsItem, !readOnly);
+  gtk_widget_set_sensitive(eolConversionItem, !readOnly);
 
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), gtk_separator_menu_item_new());
   GtkWidget *highlightItem =

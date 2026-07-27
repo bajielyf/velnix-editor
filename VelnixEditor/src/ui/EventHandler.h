@@ -51,6 +51,7 @@ public:
     static void on_spaces_to_tabs_activate(GtkWidget *widget, gpointer data);
     static void on_tabs_to_spaces_activate(GtkWidget *widget, gpointer data);
     static void on_convert_encoding_activate(GtkWidget *widget, gpointer data);
+    static void on_convert_eol_activate(GtkWidget *widget, gpointer data);
     static void on_find_activate(GtkWidget *widget, gpointer data);
     static void on_replace_activate(GtkWidget *widget, gpointer data);
     static void on_go_to_line_activate(GtkWidget *widget, gpointer data);

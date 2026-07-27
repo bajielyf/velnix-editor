@@ -219,15 +219,9 @@ GtkWidget *create_eol_menu(EditorWindow *editorWindow) {
     GtkWidget *item = localized_menu_item(option.key);
     g_object_set_data(G_OBJECT(item), "target-eol-mode",
                       GINT_TO_POINTER(static_cast<int>(option.mode)));
-    g_signal_connect(
-        item, "activate",
-        G_CALLBACK(+[](GtkWidget *widget, gpointer data) {
-          auto *window = static_cast<EditorWindow *>(data);
-          const auto mode = static_cast<EolMode>(GPOINTER_TO_INT(
-              g_object_get_data(G_OBJECT(widget), "target-eol-mode")));
-          window->setCurrentDocumentEolMode(mode);
-        }),
-        editorWindow);
+    g_signal_connect(item, "activate",
+                     G_CALLBACK(EventHandler::on_convert_eol_activate),
+                     editorWindow);
     gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
   }
   return menu;
@@ -738,6 +732,11 @@ EditorWindow::FileMenuItems WindowInitializer::buildMenuBar(
   GtkWidget *tabsToSpacesItem = localized_menu_item("menu.tabs_to_spaces");
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(blankOperationsItem),
                             blankOperationsMenu);
+  GtkWidget *eolConversionItem =
+      localized_menu_item("menu.eol_conversion");
+  GtkWidget *eolConversionMenu = create_eol_menu(editorWindow);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(eolConversionItem),
+                            eolConversionMenu);
 
   gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), undoItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), redoItem);
@@ -751,6 +750,9 @@ EditorWindow::FileMenuItems WindowInitializer::buildMenuBar(
   gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), columnEditorItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), convertCaseItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), blankOperationsItem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(editMenu),
+                        gtk_separator_menu_item_new());
+  gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), eolConversionItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(convertCaseMenu), uppercaseItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(convertCaseMenu), lowercaseItem);
   gtk_menu_shell_append(GTK_MENU_SHELL(convertCaseMenu), titleCaseItem);

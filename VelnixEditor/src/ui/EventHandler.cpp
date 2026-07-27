@@ -409,6 +409,13 @@ void EventHandler::on_convert_encoding_activate(GtkWidget *widget,
       static_cast<FileEncoding>(encodingValue), useBom);
 }
 
+void EventHandler::on_convert_eol_activate(GtkWidget *widget, gpointer data) {
+  EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
+  const auto eolMode = static_cast<EolMode>(GPOINTER_TO_INT(
+      g_object_get_data(G_OBJECT(widget), "target-eol-mode")));
+  editorWindow->setCurrentDocumentEolMode(eolMode);
+}
+
 void EventHandler::on_find_activate(GtkWidget *widget, gpointer data) {
   (void)widget;
   EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
