@@ -1022,6 +1022,9 @@ void EditorWindow::installWindowComponents(
   showEolMarkersMenuItem = components.showEolMarkersMenuItem;
   statusBar = components.statusBar;
   statusBarLabel = components.statusBarLabel;
+  statusEncodingButton = components.statusEncodingButton;
+  statusEolButton = components.statusEolButton;
+  statusLanguageButton = components.statusLanguageButton;
 }
 
 void EditorWindow::registerFileMenuItems(const FileMenuItems &items) {
@@ -2660,8 +2663,21 @@ bool EditorWindow::convertCurrentDocumentEncoding(FileEncoding encoding,
   return true;
 }
 
+void EditorWindow::setCurrentDocumentEolMode(EolMode eolMode) {
+  Document *doc = getDocument(currentDocumentIndex);
+  if (!doc || doc->readOnly || doc->eolMode == eolMode) {
+    return;
+  }
+
+  doc->eolMode = eolMode;
+  applyDocumentEolMode(currentDocumentIndex);
+  setDocumentModified(currentDocumentIndex, true);
+  update_window_title();
+}
+
 void EditorWindow::update_status_bar() {
-  if (!statusBarLabel) {
+  if (!statusEncodingButton || !statusEolButton || !statusLanguageButton ||
+      !statusBarLabel) {
     return;
   }
 
@@ -2695,19 +2711,24 @@ void EditorWindow::update_status_bar() {
     }
   }
 
-  std::string status = Localization::text("status.encoding");
-  status += ": ";
-  status += encodingText;
-  status += "    ";
-  status += Localization::text("status.eol");
-  status += ": ";
-  status += eolText;
-  status += "    ";
-  status += Localization::text("status.language");
-  status += ": ";
-  status += languageText;
+  const auto setStatusButtonText = [](GtkWidget *button, const char *text) {
+    GtkWidget *label = gtk_bin_get_child(GTK_BIN(button));
+    if (GTK_IS_LABEL(label)) {
+      gtk_label_set_text(GTK_LABEL(label), text);
+    }
+  };
+  setStatusButtonText(statusEncodingButton, encodingText);
+  setStatusButtonText(statusEolButton, eolText);
+  setStatusButtonText(statusLanguageButton, languageText.c_str());
+  gtk_widget_set_sensitive(statusEncodingButton,
+                           doc && !doc->readOnly ? TRUE : FALSE);
+  gtk_widget_set_sensitive(statusEolButton,
+                           doc && !doc->readOnly ? TRUE : FALSE);
+  gtk_widget_set_sensitive(statusLanguageButton, doc ? TRUE : FALSE);
+
+  std::string status;
   if (doc && doc->readOnly) {
-    status += "    [";
+    status += "[";
     status += Localization::text("status.read_only");
     status += "]";
   }

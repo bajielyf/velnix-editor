@@ -45,6 +45,26 @@ GtkWidget *localized_check_menu_item(const char *key) {
   return item;
 }
 
+GtkWidget *status_menu_button(float xalign, int minimumWidth = -1) {
+  GtkWidget *button = gtk_button_new();
+  GtkWidget *label = gtk_label_new("");
+  gtk_label_set_xalign(GTK_LABEL(label), xalign);
+  gtk_container_add(GTK_CONTAINER(button), label);
+  gtk_button_set_relief(GTK_BUTTON(button), GTK_RELIEF_NONE);
+  gtk_widget_set_can_focus(button, TRUE);
+  gtk_widget_set_size_request(button, minimumWidth, 24);
+  gtk_style_context_add_class(gtk_widget_get_style_context(button),
+                              GTK_STYLE_CLASS_FLAT);
+  return button;
+}
+
+GtkWidget *status_separator() {
+  GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
+  gtk_widget_set_margin_top(separator, 3);
+  gtk_widget_set_margin_bottom(separator, 3);
+  return separator;
+}
+
 constexpr int kCustomKeywordMenuColorCount = 6;
 constexpr long kCustomKeywordMenuColors[kCustomKeywordMenuColorCount] = {
     0x00FFFF,
@@ -147,6 +167,130 @@ void append_clear_custom_highlight_menu_items(GtkWidget *menu,
                    G_CALLBACK(EventHandler::on_clear_custom_highlights_activate),
                    editorWindow);
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), clearItem);
+}
+
+GtkWidget *create_encoding_menu(EditorWindow *editorWindow) {
+  GtkWidget *menu = gtk_menu_new();
+  struct EncodingOption {
+    const char *key;
+    FileEncoding encoding;
+    bool useBom;
+  };
+  constexpr EncodingOption options[] = {
+      {"menu.convert_ansi", FileEncoding::Ansi, false},
+      {"menu.convert_utf8", FileEncoding::Utf8, false},
+      {"menu.convert_utf8_bom", FileEncoding::Utf8, true},
+      {"menu.convert_utf16_le", FileEncoding::Utf16LE, true},
+      {"menu.convert_utf16_be", FileEncoding::Utf16BE, true},
+  };
+
+  for (size_t i = 0; i < sizeof(options) / sizeof(options[0]); ++i) {
+    if (i == 3) {
+      gtk_menu_shell_append(GTK_MENU_SHELL(menu),
+                            gtk_separator_menu_item_new());
+    }
+    GtkWidget *item = localized_menu_item(options[i].key);
+    g_object_set_data(
+        G_OBJECT(item), "target-encoding",
+        GINT_TO_POINTER(static_cast<int>(options[i].encoding)));
+    g_object_set_data(G_OBJECT(item), "target-use-bom",
+                      GINT_TO_POINTER(options[i].useBom ? 1 : 0));
+    g_signal_connect(item, "activate",
+                     G_CALLBACK(EventHandler::on_convert_encoding_activate),
+                     editorWindow);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+  }
+  return menu;
+}
+
+GtkWidget *create_eol_menu(EditorWindow *editorWindow) {
+  GtkWidget *menu = gtk_menu_new();
+  struct EolOption {
+    const char *key;
+    EolMode mode;
+  };
+  constexpr EolOption options[] = {
+      {"menu.eol_lf", EolMode::Lf},
+      {"menu.eol_crlf", EolMode::CrLf},
+      {"menu.eol_cr", EolMode::Cr},
+  };
+
+  for (const auto &option : options) {
+    GtkWidget *item = localized_menu_item(option.key);
+    g_object_set_data(G_OBJECT(item), "target-eol-mode",
+                      GINT_TO_POINTER(static_cast<int>(option.mode)));
+    g_signal_connect(
+        item, "activate",
+        G_CALLBACK(+[](GtkWidget *widget, gpointer data) {
+          auto *window = static_cast<EditorWindow *>(data);
+          const auto mode = static_cast<EolMode>(GPOINTER_TO_INT(
+              g_object_get_data(G_OBJECT(widget), "target-eol-mode")));
+          window->setCurrentDocumentEolMode(mode);
+        }),
+        editorWindow);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+  }
+  return menu;
+}
+
+GtkWidget *create_language_menu(EditorWindow *editorWindow) {
+  GtkWidget *menu = gtk_menu_new();
+  const auto &lexers = editorWindow->getAvailableLexers();
+  std::map<char, std::vector<LexerDefinition>> lexersByLetter;
+  for (const auto &lexer : lexers) {
+    if (!lexer.description.empty()) {
+      const char firstLetter = std::toupper(
+          static_cast<unsigned char>(lexer.description[0]));
+      lexersByLetter[firstLetter].push_back(lexer);
+    }
+  }
+
+  for (const auto &[letter, lexerList] : lexersByLetter) {
+    GtkWidget *submenu = gtk_menu_new();
+    const std::string letterLabel(1, letter);
+    GtkWidget *submenuItem =
+        gtk_menu_item_new_with_label(letterLabel.c_str());
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(submenuItem), submenu);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), submenuItem);
+
+    for (const auto &lexer : lexerList) {
+      GtkWidget *item =
+          gtk_menu_item_new_with_label(lexer.description.c_str());
+      g_object_set_data_full(G_OBJECT(item), "lexer-name",
+                             g_strdup(lexer.name.c_str()), g_free);
+      g_signal_connect(
+          item, "activate",
+          G_CALLBACK(+[](GtkWidget *widget, gpointer data) {
+            auto *window = static_cast<EditorWindow *>(data);
+            const char *lexerName = static_cast<const char *>(
+                g_object_get_data(G_OBJECT(widget), "lexer-name"));
+            if (lexerName) {
+              window->setLexer(lexerName);
+            }
+          }),
+          editorWindow);
+      gtk_menu_shell_append(GTK_MENU_SHELL(submenu), item);
+    }
+  }
+  return menu;
+}
+
+void attach_status_popup(GtkWidget *button, GtkWidget *menu) {
+  gtk_menu_attach_to_widget(GTK_MENU(menu), button, nullptr);
+  g_object_set_data(G_OBJECT(button), "status-popup-menu", menu);
+  g_signal_connect(
+      button, "clicked",
+      G_CALLBACK(+[](GtkWidget *widget, gpointer) {
+        auto *menu = GTK_MENU(
+            g_object_get_data(G_OBJECT(widget), "status-popup-menu"));
+        if (!menu) {
+          return;
+        }
+        gtk_widget_show_all(GTK_WIDGET(menu));
+        gtk_menu_popup_at_widget(menu, widget, GDK_GRAVITY_NORTH_WEST,
+                                 GDK_GRAVITY_SOUTH_WEST, nullptr);
+      }),
+      nullptr);
 }
 
 GtkWidget *create_markup_label(const std::string &markup, float xalign = 0.0f) {
@@ -467,14 +611,26 @@ EditorWindow::WindowComponents WindowInitializer::createWindowComponents() {
   components.searchResultsPanel = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   components.recentMenu = gtk_menu_new();
   components.statusBar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  components.statusLanguageButton = status_menu_button(0.0f);
+  components.statusEolButton = status_menu_button(0.5f, 72);
+  components.statusEncodingButton = status_menu_button(0.5f, 104);
   components.statusBarLabel = gtk_label_new("");
   gtk_widget_set_halign(components.statusBarLabel, GTK_ALIGN_START);
+  gtk_widget_set_margin_start(components.statusLanguageButton, 4);
   gtk_widget_set_margin_start(components.statusBarLabel, 8);
   gtk_widget_set_margin_end(components.statusBarLabel, 8);
-  gtk_widget_set_margin_top(components.statusBarLabel, 4);
-  gtk_widget_set_margin_bottom(components.statusBarLabel, 4);
+  gtk_box_pack_start(GTK_BOX(components.statusBar),
+                     components.statusLanguageButton, TRUE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(components.statusBar), components.statusBarLabel,
-                     TRUE, TRUE, 0);
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(components.statusBar), status_separator(), FALSE,
+                     FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(components.statusBar), components.statusEolButton,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(components.statusBar), status_separator(), FALSE,
+                     FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(components.statusBar),
+                     components.statusEncodingButton, FALSE, FALSE, 0);
 
   return components;
 }
@@ -729,60 +885,9 @@ EditorWindow::FileMenuItems WindowInitializer::buildMenuBar(
                    G_CALLBACK(EventHandler::on_search_results_activate),
                    editorWindow);
 
-  GtkWidget *encodingMenu = gtk_menu_new();
+  GtkWidget *encodingMenu = create_encoding_menu(editorWindow);
   GtkWidget *encodingItem = localized_menu_item("menu.encoding");
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(encodingItem), encodingMenu);
-  GtkWidget *convertToAnsiItem = localized_menu_item("menu.convert_ansi");
-  GtkWidget *convertToUtf8Item = localized_menu_item("menu.convert_utf8");
-  GtkWidget *convertToUtf8BomItem =
-      localized_menu_item("menu.convert_utf8_bom");
-  GtkWidget *convertToUtf16LeItem =
-      localized_menu_item("menu.convert_utf16_le");
-  GtkWidget *convertToUtf16BeItem =
-      localized_menu_item("menu.convert_utf16_be");
-  gtk_menu_shell_append(GTK_MENU_SHELL(encodingMenu), convertToAnsiItem);
-  gtk_menu_shell_append(GTK_MENU_SHELL(encodingMenu), convertToUtf8Item);
-  gtk_menu_shell_append(GTK_MENU_SHELL(encodingMenu), convertToUtf8BomItem);
-  gtk_menu_shell_append(GTK_MENU_SHELL(encodingMenu),
-                        gtk_separator_menu_item_new());
-  gtk_menu_shell_append(GTK_MENU_SHELL(encodingMenu), convertToUtf16LeItem);
-  gtk_menu_shell_append(GTK_MENU_SHELL(encodingMenu), convertToUtf16BeItem);
-
-  g_object_set_data(G_OBJECT(convertToAnsiItem), "target-encoding",
-                    GINT_TO_POINTER(static_cast<int>(FileEncoding::Ansi)));
-  g_object_set_data(G_OBJECT(convertToAnsiItem), "target-use-bom",
-                    GINT_TO_POINTER(0));
-  g_object_set_data(G_OBJECT(convertToUtf8Item), "target-encoding",
-                    GINT_TO_POINTER(static_cast<int>(FileEncoding::Utf8)));
-  g_object_set_data(G_OBJECT(convertToUtf8Item), "target-use-bom",
-                    GINT_TO_POINTER(0));
-  g_object_set_data(G_OBJECT(convertToUtf8BomItem), "target-encoding",
-                    GINT_TO_POINTER(static_cast<int>(FileEncoding::Utf8)));
-  g_object_set_data(G_OBJECT(convertToUtf8BomItem), "target-use-bom",
-                    GINT_TO_POINTER(1));
-  g_object_set_data(G_OBJECT(convertToUtf16LeItem), "target-encoding",
-                    GINT_TO_POINTER(static_cast<int>(FileEncoding::Utf16LE)));
-  g_object_set_data(G_OBJECT(convertToUtf16LeItem), "target-use-bom",
-                    GINT_TO_POINTER(1));
-  g_object_set_data(G_OBJECT(convertToUtf16BeItem), "target-encoding",
-                    GINT_TO_POINTER(static_cast<int>(FileEncoding::Utf16BE)));
-  g_object_set_data(G_OBJECT(convertToUtf16BeItem), "target-use-bom",
-                    GINT_TO_POINTER(1));
-  g_signal_connect(convertToAnsiItem, "activate",
-                   G_CALLBACK(EventHandler::on_convert_encoding_activate),
-                   editorWindow);
-  g_signal_connect(convertToUtf8Item, "activate",
-                   G_CALLBACK(EventHandler::on_convert_encoding_activate),
-                   editorWindow);
-  g_signal_connect(convertToUtf8BomItem, "activate",
-                   G_CALLBACK(EventHandler::on_convert_encoding_activate),
-                   editorWindow);
-  g_signal_connect(convertToUtf16LeItem, "activate",
-                   G_CALLBACK(EventHandler::on_convert_encoding_activate),
-                   editorWindow);
-  g_signal_connect(convertToUtf16BeItem, "activate",
-                   G_CALLBACK(EventHandler::on_convert_encoding_activate),
-                   editorWindow);
 
   GtkWidget *settingsMenu = gtk_menu_new();
   GtkWidget *settingsItem = localized_menu_item("menu.settings");
@@ -854,46 +959,16 @@ EditorWindow::FileMenuItems WindowInitializer::buildMenuBar(
                    }),
                    editorWindow);
 
-  GtkWidget *languageMenu = gtk_menu_new();
+  GtkWidget *languageMenu = create_language_menu(editorWindow);
   GtkWidget *languageItem = localized_menu_item("menu.language");
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(languageItem), languageMenu);
 
-  const auto &lexers = editorWindow->getAvailableLexers();
-  std::map<char, std::vector<LexerDefinition>> lexersByLetter;
-  for (const auto &lexer : lexers) {
-    if (!lexer.description.empty()) {
-      char firstLetter = std::toupper(
-          static_cast<unsigned char>(lexer.description[0]));
-      lexersByLetter[firstLetter].push_back(lexer);
-    }
-  }
-
-  for (const auto &[letter, lexerList] : lexersByLetter) {
-    GtkWidget *submenu = gtk_menu_new();
-    std::string letterLabel(1, letter);
-    GtkWidget *submenuItem =
-        gtk_menu_item_new_with_label(letterLabel.c_str());
-    gtk_menu_item_set_submenu(GTK_MENU_ITEM(submenuItem), submenu);
-    gtk_menu_shell_append(GTK_MENU_SHELL(languageMenu), submenuItem);
-
-    for (const auto &lexer : lexerList) {
-      GtkWidget *languageEntry =
-          gtk_menu_item_new_with_label(lexer.description.c_str());
-      g_object_set_data_full(G_OBJECT(languageEntry), "lexer-name",
-                             g_strdup(lexer.name.c_str()), g_free);
-      g_signal_connect(languageEntry, "activate",
-                       G_CALLBACK(+[](GtkWidget *widget, gpointer data) {
-                         auto *window = static_cast<EditorWindow *>(data);
-                         const char *lexerName = static_cast<const char *>(
-                             g_object_get_data(G_OBJECT(widget), "lexer-name"));
-                         if (lexerName) {
-                           window->setLexer(lexerName);
-                         }
-                       }),
-                       editorWindow);
-      gtk_menu_shell_append(GTK_MENU_SHELL(submenu), languageEntry);
-    }
-  }
+  attach_status_popup(components.statusEncodingButton,
+                      create_encoding_menu(editorWindow));
+  attach_status_popup(components.statusEolButton,
+                      create_eol_menu(editorWindow));
+  attach_status_popup(components.statusLanguageButton,
+                      create_language_menu(editorWindow));
 
   GtkWidget *pluginsItem = localized_menu_item("menu.plugins");
   gtk_widget_set_sensitive(pluginsItem, FALSE);

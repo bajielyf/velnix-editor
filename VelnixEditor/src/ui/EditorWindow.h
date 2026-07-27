@@ -35,6 +35,9 @@ public:
         GtkWidget *showEolMarkersMenuItem = nullptr;
         GtkWidget *statusBar = nullptr;
         GtkWidget *statusBarLabel = nullptr;
+        GtkWidget *statusEncodingButton = nullptr;
+        GtkWidget *statusEolButton = nullptr;
+        GtkWidget *statusLanguageButton = nullptr;
     };
 
     struct FileMenuItems {
@@ -377,6 +380,7 @@ public:
     void convertSpacesToTabs();
     void convertTabsToSpaces();
     bool convertCurrentDocumentEncoding(FileEncoding encoding, bool useBom);
+    void setCurrentDocumentEolMode(EolMode eolMode);
     void zoomIn();
     void zoomOut();
     void resetZoom();
@@ -486,6 +490,9 @@ private:
     GtkWidget *showEolMarkersMenuItem = nullptr;
     GtkWidget *statusBar = nullptr;
     GtkWidget *statusBarLabel = nullptr;
+    GtkWidget *statusEncodingButton = nullptr;
+    GtkWidget *statusEolButton = nullptr;
+    GtkWidget *statusLanguageButton = nullptr;
     GtkWidget *preferencesMenuItem = nullptr;
     GtkWidget *shortcutConfigMenuItem = nullptr;
     GtkWidget *searchResultsPanel = nullptr;
