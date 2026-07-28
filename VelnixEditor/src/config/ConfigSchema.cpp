@@ -113,7 +113,7 @@ const ConfigItem ShowIndentGuides{
     "show_indent_guides",
     "Show Indent Guides",
     true,
-    "Draw vertical indentation guides",
+    "Show the fixed guide at the configured long line column",
     "ui",
     {},
     {},

@@ -35,7 +35,6 @@ constexpr int kMinLongLineColumn = 0;
 constexpr int kMaxLongLineColumn = 240;
 constexpr guint kStartupUpdateDelaySeconds = 2;
 constexpr long kCaretLineBackground = 0xFFF6D8;
-constexpr long kIndentGuideForeground = 0xD0D0D0;
 constexpr long kEdgeColumnColor = 0xE7E7E7;
 constexpr int kCaretLineAlpha = 80;
 constexpr long kBraceHighlightForeground = 0x2B6CB0;
@@ -2118,10 +2117,10 @@ void EditorWindow::applyEditorBehaviorSettings(GtkWidget *scintilla) {
                                                 : SC_ALPHA_TRANSPARENT,
                            0);
     scintilla_send_message(SCINTILLA(target), SCI_SETCARETLINEFRAME, 0, 0);
+    // The configurable guide is the fixed line at longLineColumn. Scintilla's
+    // syntax indentation guides are a separate feature and remain disabled.
     scintilla_send_message(SCINTILLA(target), SCI_SETINDENTATIONGUIDES,
-                           showIndentGuides ? SC_IV_LOOKFORWARD : SC_IV_NONE, 0);
-    scintilla_send_message(SCINTILLA(target), SCI_STYLESETFORE,
-                           STYLE_INDENTGUIDE, kIndentGuideForeground);
+                           SC_IV_NONE, 0);
     scintilla_send_message(SCINTILLA(target), SCI_STYLESETFORE,
                            STYLE_BRACELIGHT, kBraceHighlightForeground);
     scintilla_send_message(SCINTILLA(target), SCI_STYLESETBACK,
@@ -2156,6 +2155,7 @@ void EditorWindow::applyEditorBehaviorSettings(GtkWidget *scintilla) {
                            scrollPastLastLine ? 0 : 1, 0);
     scintilla_send_message(SCINTILLA(target), SCI_SETEDGECOLOUR,
                            kEdgeColumnColor, 0);
+    const bool showFixedGuide = showIndentGuides && longLineColumn > 0;
 
     if (highlightCurrentColumn) {
       // Scintilla only supports one edge rendering mode at a time, so when the
@@ -2167,7 +2167,7 @@ void EditorWindow::applyEditorBehaviorSettings(GtkWidget *scintilla) {
                              longLineColumn, 0);
       scintilla_send_message(SCINTILLA(target), SCI_SETHIGHLIGHTGUIDE, 0, 0);
       scintilla_send_message(SCINTILLA(target), SCI_MULTIEDGECLEARALL, 0, 0);
-      if (longLineColumn > 0) {
+      if (showFixedGuide) {
         scintilla_send_message(SCINTILLA(target), SCI_MULTIEDGEADDLINE,
                                longLineColumn, kEdgeColumnColor);
       }
@@ -2176,7 +2176,7 @@ void EditorWindow::applyEditorBehaviorSettings(GtkWidget *scintilla) {
       scintilla_send_message(SCINTILLA(target), SCI_MULTIEDGECLEARALL, 0, 0);
       scintilla_send_message(SCINTILLA(target), SCI_SETHIGHLIGHTGUIDE, 0, 0);
       scintilla_send_message(SCINTILLA(target), SCI_SETEDGEMODE,
-                             longLineColumn > 0
+                             showFixedGuide
                                  ? (showRightMarginBackground ? EDGE_BACKGROUND
                                                               : EDGE_LINE)
                                  : EDGE_NONE,
@@ -2452,12 +2452,13 @@ void EditorWindow::updateCurrentColumnHighlightForDocument(Document &doc,
   }
 
   scintilla_send_message(SCINTILLA(target), SCI_MULTIEDGECLEARALL, 0, 0);
-  if (longLineColumn > 0) {
+  if (showIndentGuides && longLineColumn > 0) {
     scintilla_send_message(SCINTILLA(target), SCI_MULTIEDGEADDLINE,
                            longLineColumn, kEdgeColumnColor);
   }
   scintilla_send_message(SCINTILLA(target), SCI_SETHIGHLIGHTGUIDE, 0, 0);
-  if (currentColumn >= 0 && currentColumn != longLineColumn) {
+  if (currentColumn >= 0 &&
+      (!showIndentGuides || currentColumn != longLineColumn)) {
     scintilla_send_message(SCINTILLA(target), SCI_MULTIEDGEADDLINE,
                            currentColumn, kEdgeColumnColor);
   }
