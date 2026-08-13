@@ -176,6 +176,7 @@ bool load_large_file_into_scintilla(EditorWindow *window, int index,
              g_utf8_validate(probeBytes.data(),
                              static_cast<gssize>(probeBytes.size()), NULL)) {
     encodingOut = FileEncoding::Utf8;
+  } else if (DocumentIO::detect_legacy_encoding(probeBytes, encodingOut)) {
   } else {
     encodingOut = FileEncoding::Ansi;
   }
@@ -202,6 +203,7 @@ bool load_large_file_into_scintilla(EditorWindow *window, int index,
   eolSample.reserve(std::min<std::size_t>(kEolSampleLimitBytes, 256 * 1024));
 
   std::string utf16Carry;
+  std::string legacyCarry;
   while (input) {
     input.read(chunk.data(), static_cast<std::streamsize>(chunk.size()));
     const std::streamsize got = input.gcount();
@@ -239,6 +241,41 @@ bool load_large_file_into_scintilla(EditorWindow *window, int index,
         const std::size_t need =
             std::min<std::size_t>(kEolSampleLimitBytes - eolSample.size(),
                                   static_cast<std::size_t>(bytesWritten));
+        eolSample.append(converted, need);
+      }
+      g_free(converted);
+      continue;
+    }
+
+    if (const char *legacyEncoding =
+            DocumentIO::legacy_encoding_name(encodingOut)) {
+      std::string bytes;
+      bytes.swap(legacyCarry);
+      bytes.append(chunk.data(), static_cast<std::size_t>(got));
+
+      gchar *converted = nullptr;
+      gsize bytesWritten = 0;
+      std::size_t trim = 0;
+      for (; trim <= 3 && trim < bytes.size(); ++trim) {
+        GError *error = NULL;
+        converted = g_convert(bytes.data(), bytes.size() - trim, "UTF-8",
+                              legacyEncoding, NULL, &bytesWritten, &error);
+        if (error) g_error_free(error);
+        if (converted) break;
+      }
+      if (!converted) {
+        errorOut = std::string(legacyEncoding) + " decode failed.";
+        return false;
+      }
+      if (trim > 0) {
+        legacyCarry.assign(bytes.data() + bytes.size() - trim, trim);
+      }
+      scintilla_send_message(SCINTILLA(editorState.scintilla), SCI_APPENDTEXT,
+                             static_cast<uptr_t>(bytesWritten),
+                             reinterpret_cast<sptr_t>(converted));
+      if (eolSample.size() < kEolSampleLimitBytes) {
+        const std::size_t need = std::min<std::size_t>(
+            kEolSampleLimitBytes - eolSample.size(), bytesWritten);
         eolSample.append(converted, need);
       }
       g_free(converted);
@@ -306,6 +343,10 @@ bool load_large_file_into_scintilla(EditorWindow *window, int index,
   if (!utf16Carry.empty()) {
     // Remaining bytes could be an incomplete UTF-16 unit/pair; treat as decode error.
     errorOut = "UTF-16 decode ended with incomplete code unit/pair at file end.";
+    return false;
+  }
+  if (!legacyCarry.empty()) {
+    errorOut = "Legacy encoding decode ended with an incomplete byte sequence.";
     return false;
   }
 

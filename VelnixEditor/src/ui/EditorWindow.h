@@ -380,6 +380,7 @@ public:
     void convertSpacesToTabs();
     void convertTabsToSpaces();
     bool convertCurrentDocumentEncoding(FileEncoding encoding, bool useBom);
+    bool reopenCurrentDocumentWithEncoding(FileEncoding encoding, bool useBom);
     void setCurrentDocumentEolMode(EolMode eolMode);
     void zoomIn();
     void zoomOut();

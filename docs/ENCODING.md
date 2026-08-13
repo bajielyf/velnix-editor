@@ -42,6 +42,11 @@ The current implementation lives in `DocumentIO::encode_document_text()`:
   prepend the matching BOM when `useBom=true` (`FF FE` for LE, `FE FF` for BE)
 - **ANSI**: convert UTF-8 text to the selected ANSI encoding; conversion fails
   if the text cannot be represented losslessly in that target encoding
+- **Language-specific legacy encodings**: the Encoding menu also offers
+  Windows-1250/1251/1252/1253/1254/1255/1256/1258, Windows-874, GB18030,
+  Big5, Shift_JIS, and CP949. Text remains UTF-8 inside the editor and is
+  converted losslessly when saved; unsupported characters cause the conversion
+  to fail instead of being replaced silently.
 
 ## UI: Display and Conversion Entry Points
 

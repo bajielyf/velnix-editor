@@ -211,6 +211,37 @@ void test_encode_utf8_with_bom() {
   std::cout << "[PASS] test_encode_utf8_with_bom\n";
 }
 
+void test_encode_language_specific_encodings() {
+  struct EncodingCase {
+    FileEncoding encoding;
+    const char *utf8;
+    std::string expected;
+  };
+  const EncodingCase cases[] = {
+      {FileEncoding::Windows1252, "caf\xC3\xA9", "caf\xE9"},
+      {FileEncoding::Windows1251, "\xD0\x9F\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82",
+       std::string("\xCF\xF0\xE8\xE2\xE5\xF2", 6)},
+      {FileEncoding::Gb18030, "\xE4\xB8\xAD\xE6\x96\x87",
+       std::string("\xD6\xD0\xCE\xC4", 4)},
+      {FileEncoding::ShiftJis, "\xE6\x97\xA5\xE6\x9C\xAC",
+       std::string("\x93\xFA\x96\x7B", 4)},
+      {FileEncoding::Cp949, "\xED\x95\x9C\xEA\xB5\xAD",
+       std::string("\xC7\xD1\xB1\xB9", 4)},
+  };
+  for (const auto &testCase : cases) {
+    Document doc = make_test_document(testCase.encoding, false);
+    std::string rawBytes;
+    assert(DocumentIO::encode_document_text(doc, testCase.utf8, rawBytes));
+    assert(rawBytes == testCase.expected);
+  }
+
+  Document latin = make_test_document(FileEncoding::Windows1252, false);
+  std::string rawBytes;
+  assert(!DocumentIO::encode_document_text(latin, "\xE4\xB8\xAD\xE6\x96\x87",
+                                           rawBytes));
+  std::cout << "[PASS] test_encode_language_specific_encodings\n";
+}
+
 void test_encode_ansi_lossless_when_representable() {
   g_setenv("VELNIX_EDITOR_ANSI_ENCODING", "WINDOWS-1252", TRUE);
   Document doc = make_test_document(FileEncoding::Ansi, false);
@@ -243,11 +274,115 @@ void test_decode_ansi_fallback() {
   std::string text;
   FileEncoding encoding = FileEncoding::Utf8;
   bool useBom = true;
-  assert(DocumentIO::decode_file_content("caf\xE9", text, encoding, useBom));
-  assert(encoding == FileEncoding::Ansi);
+  assert(DocumentIO::decode_file_content("c\x9Cur", text, encoding, useBom));
+  assert(encoding == FileEncoding::Windows1252);
   assert(!useBom);
-  assert(text == "caf\xC3\xA9");
+  assert(text == "c\xC5\x93ur");
   std::cout << "[PASS] test_decode_ansi_fallback\n";
+}
+
+void test_detect_listed_legacy_encodings() {
+  struct DetectionCase { FileEncoding encoding; const char *utf8; };
+  const DetectionCase cases[] = {
+      {FileEncoding::Windows1250, "Za\xC5\xBC\xC3\xB3\xC5\x82\xC4\x87"},
+      {FileEncoding::Windows1251, "\xD0\x9F\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82"},
+      {FileEncoding::Windows1253, "\xCE\x9A\xCE\xB1\xCE\xBB\xCE\xB7\xCE\xBC\xCE\xAD\xCF\x81\xCE\xB1"},
+      {FileEncoding::Windows1254,
+       "T\xC3\xBC" "rk\xC3\xA7" "e \xC4\x9F\xC4\xB1\xC5\x9F"},
+      {FileEncoding::Windows1255, "\xD7\xA9\xD7\x9C\xD7\x95\xD7\x9D"},
+      {FileEncoding::Windows1256, "\xD9\x85\xD8\xB1\xD8\xAD\xD8\xA8\xD8\xA7"},
+      {FileEncoding::Windows1258, "Vi\xE1\xBB\x87t Nam"},
+      {FileEncoding::Windows874, "\xE0\xB8\xAA\xE0\xB8\xA7\xE0\xB8\xB1\xE0\xB8\xAA\xE0\xB8\x94\xE0\xB8\xB5"},
+      {FileEncoding::ShiftJis, "\xE3\x81\x93\xE3\x82\x93\xE3\x81\xAB\xE3\x81\xA1\xE3\x81\xAF"},
+      {FileEncoding::Cp949, "\xEC\x95\x88\xEB\x85\x95\xED\x95\x98\xEC\x84\xB8\xEC\x9A\x94"},
+      {FileEncoding::Gb18030, "\xE7\xAE\x80\xE4\xBD\x93\xE4\xB8\xAD\xE6\x96\x87\xE6\xB5\x8B\xE8\xAF\x95"},
+      {FileEncoding::Big5, "\xE7\xB9\x81\xE9\xAB\x94\xE4\xB8\xAD\xE6\x96\x87\xE6\xB8\xAC\xE8\xA9\xA6"},
+  };
+  for (const auto &testCase : cases) {
+    Document doc = make_test_document(testCase.encoding, false);
+    std::string rawBytes;
+    assert(DocumentIO::encode_document_text(doc, testCase.utf8, rawBytes));
+    FileEncoding detected = FileEncoding::Ansi;
+    assert(DocumentIO::detect_legacy_encoding(rawBytes, detected));
+    assert(detected == testCase.encoding);
+    std::string decoded;
+    bool useBom = true;
+    assert(DocumentIO::decode_file_content(rawBytes, decoded, detected, useBom));
+    assert(detected == testCase.encoding);
+    assert(!useBom);
+    if (testCase.encoding != FileEncoding::Windows1258) {
+      // Windows-1258 may canonically decompose Vietnamese tone marks.
+      assert(decoded == testCase.utf8);
+    }
+  }
+  std::cout << "[PASS] test_detect_listed_legacy_encodings\n";
+}
+
+void test_detect_east_asian_realistic_text() {
+  const std::pair<FileEncoding, const char *> cases[] = {
+      {FileEncoding::ShiftJis,
+       "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E\xE3\x81\xAE\xE6\x96\x87\xE6\x9B\xB8\xE3\x82\x92"
+       "\xE6\xAD\xA3\xE3\x81\x97\xE3\x81\x8F\xE8\xA1\xA8\xE7\xA4\xBA\xE3\x81\x97\xE3\x81\xBE\xE3\x81\x99\xE3\x80\x82"},
+      {FileEncoding::Cp949,
+       "\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4 \xEB\xAC\xB8\xEC\x84\x9C\xEB\xA5\xBC "
+       "\xEC\x98\xAC\xEB\xB0\x94\xEB\xA5\xB4\xEA\xB2\x8C \xED\x91\x9C\xEC\x8B\x9C\xED\x95\xA9\xEB\x8B\x88\xEB\x8B\xA4. "
+       "\xEA\xB0\x82"},  // U+AC02 exercises the CP949 extension beyond EUC-KR.
+  };
+  for (const auto &testCase : cases) {
+    Document doc = make_test_document(testCase.first, false);
+    std::string rawBytes;
+    assert(DocumentIO::encode_document_text(doc, testCase.second, rawBytes));
+    std::string decoded;
+    FileEncoding detected = FileEncoding::Ansi;
+    bool useBom = true;
+    assert(DocumentIO::decode_file_content(rawBytes, decoded, detected, useBom));
+    assert(detected == testCase.first);
+    assert(decoded == testCase.second);
+  }
+  std::cout << "[PASS] test_detect_east_asian_realistic_text\n";
+}
+
+void test_cp949_is_not_misdetected_as_windows1250() {
+  // Short Korean text is frequently ranked as Windows-1250 by statistical
+  // detectors because both encodings accept the same high bytes.
+  const std::string cp949("\xC7\xD1\xB1\xB9\xBE\xEE \xB9\xAE\xBC\xAD", 11);
+  FileEncoding detected = FileEncoding::Ansi;
+  assert(DocumentIO::detect_legacy_encoding(cp949, detected));
+  assert(detected == FileEncoding::Cp949);
+
+  std::string decoded;
+  bool useBom = true;
+  assert(DocumentIO::decode_file_content(cp949, decoded, detected, useBom));
+  assert(detected == FileEncoding::Cp949);
+  assert(decoded == "\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4 \xEB\xAC\xB8\xEC\x84\x9C");
+  std::cout << "[PASS] test_cp949_is_not_misdetected_as_windows1250\n";
+}
+
+void test_manual_legacy_encoding_selection() {
+  std::string text;
+  const std::string cp949("\xC7\xD1\xB1\xB9\xBE\xEE", 6);
+  assert(DocumentIO::decode_file_content_as(cp949, FileEncoding::Cp949, false,
+                                            text));
+  assert(text == "\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4");
+
+  const std::string shiftJis("\x93\xFA\x96\x7B\x8C\xEA", 6);
+  assert(DocumentIO::decode_file_content_as(
+      shiftJis, FileEncoding::ShiftJis, false, text));
+  assert(text == "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E");
+  std::cout << "[PASS] test_manual_legacy_encoding_selection\n";
+}
+
+void test_decode_gb18030() {
+  std::string text;
+  FileEncoding encoding = FileEncoding::Utf8;
+  bool useBom = true;
+  assert(DocumentIO::decode_file_content(
+      std::string("GB18030: \xD6\xD0\xCE\xC4\xB2\xE2\xCA\xD4"),
+      text, encoding, useBom));
+  assert(encoding == FileEncoding::Gb18030);
+  assert(!useBom);
+  assert(text == "GB18030: \xE4\xB8\xAD\xE6\x96\x87\xE6\xB5\x8B\xE8\xAF\x95");
+  std::cout << "[PASS] test_decode_gb18030\n";
 }
 
 void test_decode_ansi_fallback_handles_undefined_windows_1252_byte() {
@@ -288,10 +423,16 @@ int main(int argc, char **argv) {
   std::cout << "\n--- Document Encoding Tests ---\n";
   DocumentEncodingTests::test_encode_utf8_without_bom();
   DocumentEncodingTests::test_encode_utf8_with_bom();
+  DocumentEncodingTests::test_encode_language_specific_encodings();
   DocumentEncodingTests::test_encode_ansi_lossless_when_representable();
   DocumentEncodingTests::test_encode_ansi_fails_when_unrepresentable();
   DocumentEncodingTests::test_encode_ansi_fallback_handles_control_code_roundtrip();
   DocumentEncodingTests::test_decode_ansi_fallback();
+  DocumentEncodingTests::test_decode_gb18030();
+  DocumentEncodingTests::test_detect_listed_legacy_encodings();
+  DocumentEncodingTests::test_detect_east_asian_realistic_text();
+  DocumentEncodingTests::test_cp949_is_not_misdetected_as_windows1250();
+  DocumentEncodingTests::test_manual_legacy_encoding_selection();
   DocumentEncodingTests::test_decode_ansi_fallback_handles_undefined_windows_1252_byte();
 
   std::cout << "\n===== All Overwrite Readonly Save Tests Passed =====\n\n";

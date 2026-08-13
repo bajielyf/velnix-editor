@@ -409,6 +409,16 @@ void EventHandler::on_convert_encoding_activate(GtkWidget *widget,
       static_cast<FileEncoding>(encodingValue), useBom);
 }
 
+void EventHandler::on_reopen_with_encoding_activate(GtkWidget *widget,
+                                                     gpointer data) {
+  auto *editorWindow = static_cast<EditorWindow *>(data);
+  const auto encoding = static_cast<FileEncoding>(GPOINTER_TO_INT(
+      g_object_get_data(G_OBJECT(widget), "target-encoding")));
+  const bool useBom = GPOINTER_TO_INT(
+      g_object_get_data(G_OBJECT(widget), "target-use-bom")) != 0;
+  editorWindow->reopenCurrentDocumentWithEncoding(encoding, useBom);
+}
+
 void EventHandler::on_convert_eol_activate(GtkWidget *widget, gpointer data) {
   EditorWindow *editorWindow = static_cast<EditorWindow *>(data);
   const auto eolMode = static_cast<EolMode>(GPOINTER_TO_INT(

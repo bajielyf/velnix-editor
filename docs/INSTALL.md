@@ -11,11 +11,12 @@ Requirements:
 - a C++17-capable compiler
 - GTK 3 development files
 - libcurl development files
+- ICU development files
 
 On Debian or Ubuntu, install the native dependencies with:
 
 ```bash
-sudo apt install build-essential cmake pkg-config libgtk-3-dev libcurl4-openssl-dev
+sudo apt install build-essential cmake pkg-config libgtk-3-dev libcurl4-openssl-dev libicu-dev
 ```
 
 Build commands:

@@ -177,7 +177,6 @@ GtkWidget *create_encoding_menu(EditorWindow *editorWindow) {
     bool useBom;
   };
   constexpr EncodingOption options[] = {
-      {"menu.convert_ansi", FileEncoding::Ansi, false},
       {"menu.convert_utf8", FileEncoding::Utf8, false},
       {"menu.convert_utf8_bom", FileEncoding::Utf8, true},
       {"menu.convert_utf16_le", FileEncoding::Utf16LE, true},
@@ -185,7 +184,7 @@ GtkWidget *create_encoding_menu(EditorWindow *editorWindow) {
   };
 
   for (size_t i = 0; i < sizeof(options) / sizeof(options[0]); ++i) {
-    if (i == 3) {
+    if (i == 2) {
       gtk_menu_shell_append(GTK_MENU_SHELL(menu),
                             gtk_separator_menu_item_new());
     }
@@ -200,6 +199,46 @@ GtkWidget *create_encoding_menu(EditorWindow *editorWindow) {
                      editorWindow);
     gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
   }
+
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), gtk_separator_menu_item_new());
+  GtkWidget *reopenItem = localized_menu_item("menu.reopen_with_encoding");
+  GtkWidget *reopenMenu = gtk_menu_new();
+  struct ReopenOption { const char *label; FileEncoding encoding; bool useBom; };
+  constexpr ReopenOption reopenOptions[] = {
+      {"ANSI", FileEncoding::Ansi, false},
+      {"UTF-8", FileEncoding::Utf8, false},
+      {"UTF-8 BOM", FileEncoding::Utf8, true},
+      {"UTF-16 LE", FileEncoding::Utf16LE, false},
+      {"UTF-16 LE BOM", FileEncoding::Utf16LE, true},
+      {"UTF-16 BE", FileEncoding::Utf16BE, false},
+      {"UTF-16 BE BOM", FileEncoding::Utf16BE, true},
+      {"Windows-1252", FileEncoding::Windows1252, false},
+      {"Windows-1250", FileEncoding::Windows1250, false},
+      {"Windows-1251", FileEncoding::Windows1251, false},
+      {"Windows-1253", FileEncoding::Windows1253, false},
+      {"Windows-1254", FileEncoding::Windows1254, false},
+      {"Windows-1255", FileEncoding::Windows1255, false},
+      {"Windows-1256", FileEncoding::Windows1256, false},
+      {"Windows-1258", FileEncoding::Windows1258, false},
+      {"Windows-874", FileEncoding::Windows874, false},
+      {"Shift_JIS", FileEncoding::ShiftJis, false},
+      {"CP949", FileEncoding::Cp949, false},
+      {"GB18030", FileEncoding::Gb18030, false},
+      {"Big5", FileEncoding::Big5, false},
+  };
+  for (const auto &option : reopenOptions) {
+    GtkWidget *item = gtk_menu_item_new_with_label(option.label);
+    g_object_set_data(G_OBJECT(item), "target-encoding",
+                      GINT_TO_POINTER(static_cast<int>(option.encoding)));
+    g_object_set_data(G_OBJECT(item), "target-use-bom",
+                      GINT_TO_POINTER(option.useBom ? 1 : 0));
+    g_signal_connect(item, "activate",
+                     G_CALLBACK(EventHandler::on_reopen_with_encoding_activate),
+                     editorWindow);
+    gtk_menu_shell_append(GTK_MENU_SHELL(reopenMenu), item);
+  }
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(reopenItem), reopenMenu);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), reopenItem);
   return menu;
 }
 

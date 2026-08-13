@@ -13,6 +13,7 @@ set(VELNIX_HOMEPAGE "https://bajielyf.github.io/velnix-editor" CACHE STRING "Vel
 set(VELNIX_UPDATE_URL "${VELNIX_HOMEPAGE}/version.txt" CACHE STRING "Velnix Editor update metadata URL")
 
 find_package(PkgConfig REQUIRED)
+find_package(ICU REQUIRED COMPONENTS i18n)
 pkg_check_modules(CURL REQUIRED IMPORTED_TARGET libcurl)
 
 # When built standalone, pull in the editor libraries from sibling directories.
@@ -81,6 +82,7 @@ target_link_libraries(velnix_editor
         scintilla
         lexilla
         PkgConfig::CURL
+        ICU::i18n
 )
 
 add_executable(test_gtk src/test_gtk.cpp)
@@ -182,6 +184,7 @@ target_link_libraries(test_document_operations
     PRIVATE
         scintilla
         ${GTK3_LIBRARIES}
+        ICU::i18n
 )
 
 target_compile_options(velnix_editor PRIVATE -Wall -Wextra)

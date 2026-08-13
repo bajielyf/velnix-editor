@@ -83,7 +83,11 @@ const char *encoding_display_name(FileEncoding encoding, bool useBom) {
   if (encoding == FileEncoding::Utf16LE) {
     return useBom ? "UTF-16 LE BOM" : "UTF-16 LE";
   }
-  return useBom ? "UTF-16 BE BOM" : "UTF-16 BE";
+  if (encoding == FileEncoding::Utf16BE) {
+    return useBom ? "UTF-16 BE BOM" : "UTF-16 BE";
+  }
+  const char *name = DocumentIO::legacy_encoding_name(encoding);
+  return name ? name : "Unknown";
 }
 
 bool is_brace_character(char ch) {
@@ -2657,7 +2661,8 @@ bool EditorWindow::convertCurrentDocumentEncoding(FileEncoding encoding,
     return false;
   }
 
-  if (encoding == FileEncoding::Ansi) {
+  if (encoding != FileEncoding::Utf8 && encoding != FileEncoding::Utf16LE &&
+      encoding != FileEncoding::Utf16BE) {
     useBom = false;
   }
 
@@ -2688,6 +2693,55 @@ bool EditorWindow::convertCurrentDocumentEncoding(FileEncoding encoding,
   doc->useBom = useBom;
   setDocumentModified(currentDocumentIndex, true);
   update_window_title();
+  return true;
+}
+
+bool EditorWindow::reopenCurrentDocumentWithEncoding(FileEncoding encoding,
+                                                     bool useBom) {
+  Document *doc = getDocument(currentDocumentIndex);
+  if (!doc || doc->filePath.empty()) return false;
+
+  if (doc->modified) {
+    GtkWidget *dialog = gtk_message_dialog_new(
+        GTK_WINDOW(window), GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
+        GTK_BUTTONS_NONE, "%s", Localization::text("prompt.reload_file"));
+    gtk_message_dialog_format_secondary_text(
+        GTK_MESSAGE_DIALOG(dialog), "%s",
+        Localization::text("prompt.discard_unsaved"));
+    gtk_dialog_add_buttons(GTK_DIALOG(dialog),
+                           Localization::text("dialog.cancel"),
+                           GTK_RESPONSE_CANCEL,
+                           Localization::text("dialog.reload"),
+                           GTK_RESPONSE_ACCEPT, NULL);
+    const int response = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+    if (response != GTK_RESPONSE_ACCEPT) return false;
+  }
+
+  std::ifstream input(doc->filePath, std::ios::binary);
+  if (!input) return false;
+  std::ostringstream buffer;
+  buffer << input.rdbuf();
+  std::string text;
+  if (!DocumentIO::decode_file_content_as(buffer.str(), encoding, useBom,
+                                          text)) {
+    if (documentManager) {
+      documentManager->show_error_dialog(
+          Localization::text("error.encoding_failed"), doc->filePath);
+    }
+    return false;
+  }
+
+  scintilla_send_message(SCINTILLA(doc->scintilla), SCI_SETTEXT, 0,
+                         reinterpret_cast<sptr_t>(text.c_str()));
+  scintilla_send_message(SCINTILLA(doc->scintilla), SCI_SETSAVEPOINT, 0, 0);
+  doc->encoding = encoding;
+  doc->useBom = useBom;
+  doc->eolMode = DocumentIO::detect_eol_mode(text);
+  doc->modified = false;
+  applyDocumentEolMode(currentDocumentIndex);
+  applyCurrentSyntaxHighlighting();
+  update_status_bar();
   return true;
 }
 

@@ -9,7 +9,25 @@
 #include <string>
 #include <vector>
 
-enum class FileEncoding { Ansi, Utf8, Utf16LE, Utf16BE };
+enum class FileEncoding {
+  Ansi,
+  Utf8,
+  Utf16LE,
+  Utf16BE,
+  Windows1252,
+  Windows1250,
+  Windows1251,
+  Windows1253,
+  Windows1254,
+  Windows1255,
+  Windows1256,
+  Windows1258,
+  Windows874,
+  Gb18030,
+  Big5,
+  ShiftJis,
+  Cp949
+};
 
 enum class EolMode { CrLf, Cr, Lf };
 
