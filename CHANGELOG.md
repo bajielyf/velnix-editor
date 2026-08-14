@@ -2,6 +2,40 @@
 
 All notable project-level changes intended for published releases should be recorded in this file.
 
+## [0.1.5] - 2026-08-14
+
+Patch release focused on legacy-encoding workflows, interactive document-state
+controls, EOL conversion, and automated multi-architecture releases.
+
+### Added
+
+- Added automatic detection for common Windows, Central and Eastern European,
+  Middle Eastern, Thai, Chinese, Japanese, and Korean legacy encodings.
+- Added **Reopen with Encoding** for manually decoding a document with UTF or
+  supported legacy encodings.
+- Added lossless decoding, encoding, and round-trip regression coverage,
+  including large legacy-encoded files.
+- Added EOL conversion to the Edit menu, editor context menu, and status bar.
+- Added interactive status-bar controls for language, EOL mode, and encoding.
+- Added automated `amd64` and `arm64` Debian builds and tagged GitHub Releases
+  with checksums and release notes generated from this changelog.
+
+### Changed
+
+- Localized status-bar document information and refined its layout.
+- Limited encoding conversion targets to UTF-8 and UTF-16; legacy encodings
+  remain available for automatic detection and **Reopen with Encoding**, and
+  an opened document is saved in its current encoding when representable.
+- Added ICU as a build and runtime dependency for legacy-encoding detection.
+
+### Fixed
+
+- Aligned fixed long-line guide visibility with its configuration setting.
+- Preferred ICU's result when heuristic evidence is too weak to distinguish
+  overlapping legacy encodings.
+- Kept the Windows-1252 fallback regression check active in Release builds.
+- Included `CHANGELOG.md` in the automated GitHub Release assets as documented.
+
 ## [0.1.4] - 2026-07-23
 
 Patch release focused on update discovery, faster access to common editing

@@ -66,6 +66,9 @@ Before a release, run the main editor and verify the following flow:
   occurrences
 - switch syntax highlighting by language or file extension
 - convert encoding through the `Encoding` menu
+- reopen a non-UTF file with an explicit encoding and verify lossless saving
+- convert among LF, CRLF, and CR from both the Edit menu and status bar
+- switch language, EOL mode, and encoding through the status-bar controls
 - run **Check for Updates** from the Help menu and confirm the result dialog
 - close and reopen the application to confirm configuration persistence
 

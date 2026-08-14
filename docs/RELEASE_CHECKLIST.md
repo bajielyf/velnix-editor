@@ -32,7 +32,9 @@ Use this checklist when preparing a Velnix Editor release.
 - [ ] Tab switching and tab closing
 - [ ] Find, replace, and search result navigation
 - [ ] Syntax highlighting switching and extension-based matching
-- [ ] Encoding display and encoding conversion
+- [ ] Encoding detection, display, UTF conversion, and reopen with encoding
+- [ ] EOL conversion from the Edit menu, context menu, and status bar
+- [ ] Language, EOL, and encoding status-bar controls
 - [ ] Recent files, preferences, and shortcut configuration
 - [ ] Session restore
 - [ ] Optional command-line file arguments append after restored session tabs
@@ -66,7 +68,7 @@ Use this checklist when preparing a Velnix Editor release.
 - [ ] Push the tag and confirm the GitHub Actions release workflow succeeds
 - [ ] Confirm the GitHub Release description matches the corresponding
   `CHANGELOG.md` version section
-- [ ] Confirm the GitHub Release contains the `.deb`, `SHA256SUMS`, and
-  `CHANGELOG.md` assets
+- [ ] Confirm the GitHub Release contains `amd64` and `arm64` `.deb` packages,
+  `SHA256SUMS`, and `CHANGELOG.md`
 - [ ] Prepare release announcement or release notes
 - [ ] List known issues and follow-up plans for the next version

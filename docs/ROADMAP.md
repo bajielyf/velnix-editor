@@ -5,7 +5,7 @@
 This roadmap tracks the current state of Velnix Editor, the remaining work
 before the next release, and the likely direction after that release.
 
-Last updated: 2026-07-23
+Last updated: 2026-08-14
 
 ## Current Positioning
 
@@ -47,8 +47,9 @@ package name, executable name, and release process.
 - Top-level CMake includes `scintilla/`, `lexilla/`, and `VelnixEditor/`.
 - The main CMake target remains `velnix_editor`, while its output name is
   `velnix-editor`.
-- `test_gtk`, `test_document_state`, `test_config_store`, and
-  `test_document_operations` are available as build targets.
+- `test_gtk`, `test_document_state`, `test_config_store`,
+  `test_document_operations`, and `test_update_checker` are available as build
+  targets.
 - Installation rules install the binary, desktop entry, and top-level README.
 - A local verification build has confirmed the binary links as `velnix-editor`
   and installs as `bin/velnix-editor`.
@@ -64,6 +65,9 @@ package name, executable name, and release process.
   implemented.
 - The editor context menu exposes common editing, column selection, case
   conversion, whitespace, and custom-highlighting actions.
+- The status bar exposes interactive language, EOL, and encoding controls.
+- LF, CRLF, and CR conversion is available from the Edit menu, context menu,
+  and status bar.
 
 ### 4. Document Management and File State
 
@@ -84,12 +88,14 @@ package name, executable name, and release process.
 ### 5. Encoding and EOL Handling
 
 - File encoding, EOL mode, and read-only state handling are implemented.
-- UTF-8 BOM, UTF-16 LE BOM, UTF-16 BE BOM, UTF-8 validation, and ANSI fallback
-  are documented and implemented.
+- UTF-8 BOM, UTF-16 LE BOM, UTF-16 BE BOM, UTF-8 validation, legacy-encoding
+  detection, and ANSI fallback are documented and implemented.
 - ANSI encoding can be selected through `VELNIX_EDITOR_ANSI_ENCODING`, locale
   detection, or the `WINDOWS-1252` fallback.
-- Encoding conversion menu supports ANSI, UTF-8, UTF-8 BOM, UTF-16 LE, and
-  UTF-16 BE.
+- ICU-assisted, script-aware detection supports common Windows, Chinese,
+  Japanese, and Korean legacy encodings.
+- Documents can be reopened with an explicit UTF or supported legacy encoding.
+- Encoding conversion supports UTF-8, UTF-8 BOM, UTF-16 LE, and UTF-16 BE.
 - Conversion failures surface user-facing prompts when text cannot be
   represented losslessly.
 
@@ -156,6 +162,8 @@ package name, executable name, and release process.
 - `docs/RELEASE_CHECKLIST.md` tracks release verification.
 - `CHANGELOG.md` exists for release-facing changes.
 - `LICENSE` has a Velnix Editor project preamble and keeps the GPLv3 text.
+- Tagged GitHub Actions builds produce `amd64` and `arm64` Debian packages,
+  checksums, changelog-based release notes, and GitHub Release assets.
 
 ## Release Blockers
 
@@ -224,11 +232,10 @@ package name, executable name, and release process.
 - Improve macro system discoverability and usability.
 - Expand shortcut conflict detection and shortcut management ergonomics.
 - Improve performance in large-file and many-tab scenarios.
-- Improve encoding workflows, including status-bar or document-property access
-  for encoding display and switching.
-- Continue improving the bottom status bar with more useful document state and
-  editor mode details, including total document character count, selected
-  character count, and the current language/syntax state.
+- Improve confidence feedback for ambiguous legacy-encoding detection and
+  manual reopening.
+- Continue improving the bottom status bar with total and selected character
+  counts and other useful document state.
 - Continue expanding editor context-menu coverage for document-level workflows.
 
 ### Low Priority
@@ -242,14 +249,14 @@ package name, executable name, and release process.
 
 ## Milestones
 
-### M1: 0.1.4 Patch Release Cleanup
+### M1: 0.1.5 Patch Release Cleanup
 
-- Confirm release metadata for version `0.1.4`.
+- Confirm release metadata for version `0.1.5`.
 - Confirm package contents and installed files.
 - Complete build, test, package, and install validation.
 - Finish release notes and known limitations.
 
-### M2: Patch Release, 0.1.4
+### M2: Patch Release, 0.1.5
 
 - Publish package artifact.
 - Publish changelog and known issues.
@@ -261,8 +268,8 @@ package name, executable name, and release process.
 - Improve search responsiveness and search result workflows.
 - Continue refining the search box interaction model and visible search states.
 - Improve preferences and shortcut configuration experience.
-- Improve the bottom status bar with character statistics and current
-  language/syntax state, and expand editor context-menu workflows.
+- Improve the bottom status bar with character statistics and expand editor
+  context-menu workflows.
 - Add first-pass theme customization.
 - Add more complete editing behavior controls.
 

@@ -7,7 +7,7 @@ and source-code work.
 
 Built with GTK, Scintilla, and Lexilla, Velnix Editor focuses on direct, efficient editing workflows in a clean native desktop application.
 
-Current release target: **0.1.4**.
+Current release target: **0.1.5**.
 
 ## Screenshot
 
@@ -50,7 +50,9 @@ Current demos focus on implemented editing workflows in the current release.
   per-document custom keyword highlighting, and macro recording/playback
 - Editor context-menu access to common editing, case conversion, whitespace,
   and custom-highlighting actions
-- Encoding detection and conversion for common UTF and ANSI workflows
+- Automatic legacy-encoding detection, manual reopen-with-encoding support,
+  and lossless UTF conversion workflows
+- Interactive status-bar controls for language, EOL mode, and encoding
 - Automatic and manual update checks, preferences, shortcuts, recent files,
   and external-change prompts
 
@@ -102,15 +104,14 @@ To publish a GitHub Release, first make sure the version in `CMakeLists.txt`
 and `CHANGELOG.md` is current, then push a matching version tag:
 
 ```bash
-git tag v0.1.4
-git push origin v0.1.4
+git tag v0.1.5
+git push origin v0.1.5
 ```
 
-The tag must match the CMake project version. A successful tagged build
-uses the matching version section from `CHANGELOG.md` as the release
-description, and publishes every file generated under `dist/` as a GitHub
-Release asset. This currently includes the Debian package, `SHA256SUMS`, and
-`CHANGELOG.md`.
+The tag must match the CMake project version. A successful tagged build uses
+the matching version section from `CHANGELOG.md` as the release description.
+It publishes the `amd64` and `arm64` Debian packages, `SHA256SUMS`, and
+`CHANGELOG.md` as GitHub Release assets.
 
 ## Runtime Data
 
@@ -125,7 +126,8 @@ User configuration is stored under `~/.config/velnix-editor/` by default.
 - [Known Limitations](docs/KNOWN_ISSUES.md)
 - [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md)
 - [Release Checklist](docs/RELEASE_CHECKLIST.md)
-- [Release Notes 0.1.4](docs/RELEASE_NOTES_0.1.4.md)
+- [Release Notes 0.1.5](docs/RELEASE_NOTES_0.1.5.md)
+- [Release Notes 0.1.4](docs/RELEASE_NOTES_0.1.4.md) - historical release snapshot
 - [Release Notes 0.1.3](docs/RELEASE_NOTES_0.1.3.md) - historical release snapshot
 - [Release Notes 0.1.2](docs/RELEASE_NOTES_0.1.2.md) - historical release snapshot
 - [Release Notes 0.1.1](docs/RELEASE_NOTES_0.1.1.md) - historical release snapshot

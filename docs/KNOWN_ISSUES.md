@@ -1,6 +1,6 @@
 # Velnix Editor Known Limitations
 
-This document records known limitations for the Velnix Editor 0.1.4 release.
+This document records known limitations for the Velnix Editor 0.1.5 release.
 
 ## 1. Search Responsiveness
 
@@ -52,7 +52,20 @@ Planned follow-up:
 - add focused tests for same-length replacements and highlight refresh
 - validate custom highlighting performance on large documents
 
-## 5. Update Checks
+## 5. Legacy Encoding Detection
+
+Legacy encoding detection uses ICU statistical results together with
+script-aware validation. Some short files and similar single-byte encodings do
+not contain enough evidence for an unambiguous result. Use **Reopen with
+Encoding** when a file is decoded incorrectly.
+
+Planned follow-up:
+
+- expand regression samples for short and mixed-script documents
+- improve confidence reporting and manual-selection feedback
+- continue validating detection performance on very large files
+
+## 6. Update Checks
 
 Update checks retrieve a plain-text version from the project website and
 therefore require working network access. Automatic check failures remain
@@ -65,9 +78,9 @@ Planned follow-up:
 - consider publishing signed update metadata if the workflow expands beyond
   version discovery
 
-## 6. Plugin Support
+## 7. Plugin Support
 
-Velnix Editor 0.1.4 does not include a plugin system. This release keeps
+Velnix Editor 0.1.5 does not include a plugin system. This release keeps
 the extension boundary intentionally simple while the core editor behavior
 stabilizes.
 
@@ -77,7 +90,7 @@ Planned follow-up:
 - decide how plugins should be configured and packaged
 - document compatibility expectations before exposing a public plugin API
 
-## 7. End-User Documentation
+## 8. End-User Documentation
 
 The repository includes build, installation, testing, encoding, roadmap,
 third-party notice, changelog, and release documentation. A fuller end-user
