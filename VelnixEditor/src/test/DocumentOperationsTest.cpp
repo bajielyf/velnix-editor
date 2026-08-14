@@ -274,10 +274,12 @@ void test_decode_ansi_fallback() {
   std::string text;
   FileEncoding encoding = FileEncoding::Utf8;
   bool useBom = true;
-  assert(DocumentIO::decode_file_content("c\x9Cur", text, encoding, useBom));
-  assert(encoding == FileEncoding::Windows1252);
-  assert(!useBom);
-  assert(text == "c\xC5\x93ur");
+  g_assert_true(
+      DocumentIO::decode_file_content("c\x9Cur", text, encoding, useBom));
+  g_assert_cmpint(static_cast<int>(encoding), ==,
+                  static_cast<int>(FileEncoding::Windows1252));
+  g_assert_false(useBom);
+  g_assert_true(text == "c\xC5\x93ur");
   std::cout << "[PASS] test_decode_ansi_fallback\n";
 }
 

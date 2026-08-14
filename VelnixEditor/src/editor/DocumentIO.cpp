@@ -343,6 +343,14 @@ bool DocumentIO::detect_legacy_encoding(const std::string &bytes,
       bestEncoding = candidate.encoding;
     }
   }
+  // With only one non-ASCII character, several single-byte encodings can
+  // receive the same minimal script score. Prefer ICU's statistical result in
+  // that low-evidence case instead of whichever candidate happens to appear
+  // first in the table.
+  if (icuFallback != FileEncoding::Ansi && bestScore <= 10) {
+    encoding = icuFallback;
+    return true;
+  }
   if (bestScore <= 0) {
     if (icuFallback == FileEncoding::Ansi) return false;
     encoding = icuFallback;
