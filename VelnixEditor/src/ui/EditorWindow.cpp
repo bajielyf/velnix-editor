@@ -14,9 +14,9 @@
 #include "core/Logger.h"
 #include "core/UpdateChecker.h"
 #include <algorithm>
+#include <charconv>
 #include <cctype>
 #include <fstream>
-#include <regex>
 #include <sstream>
 
 namespace {
@@ -600,72 +600,110 @@ std::string json_escape(const std::string &text) {
   return stream.str();
 }
 
-std::string json_unescape(const std::string &text) {
-  std::string result;
-  result.reserve(text.size());
-  for (size_t i = 0; i < text.size(); ++i) {
-    if (text[i] != '\\' || i + 1 >= text.size()) {
-      result.push_back(text[i]);
-      continue;
+size_t find_json_field_value(const std::string &text,
+                             const std::string &field) {
+  const std::string key = "\"" + field + "\"";
+  size_t searchFrom = 0;
+  while (searchFrom < text.size()) {
+    const size_t keyPosition = text.find(key, searchFrom);
+    if (keyPosition == std::string::npos) {
+      return std::string::npos;
     }
 
-    const char escaped = text[++i];
-    switch (escaped) {
-      case 'n':
-        result.push_back('\n');
-        break;
-      case 'r':
-        result.push_back('\r');
-        break;
-      case 't':
-        result.push_back('\t');
-        break;
-      default:
-        result.push_back(escaped);
-        break;
+    size_t position = keyPosition + key.size();
+    while (position < text.size() &&
+           std::isspace(static_cast<unsigned char>(text[position]))) {
+      ++position;
     }
+    if (position < text.size() && text[position] == ':') {
+      ++position;
+      while (position < text.size() &&
+             std::isspace(static_cast<unsigned char>(text[position]))) {
+        ++position;
+      }
+      return position;
+    }
+    searchFrom = keyPosition + key.size();
   }
-  return result;
+  return std::string::npos;
 }
 
 bool parse_json_int_field(const std::string &text, const std::string &field,
                           sptr_t &value) {
-  const std::regex pattern("\"" + field + "\"\\s*:\\s*(-?\\d+)");
-  std::smatch match;
-  if (!std::regex_search(text, match, pattern)) {
+  const size_t position = find_json_field_value(text, field);
+  if (position == std::string::npos) {
     return false;
   }
 
-  try {
-    value = static_cast<sptr_t>(std::stoll(match[1].str()));
-    return true;
-  } catch (const std::exception &) {
+  sptr_t parsed = 0;
+  const char *begin = text.data() + position;
+  const char *end = text.data() + text.size();
+  const auto result = std::from_chars(begin, end, parsed);
+  if (result.ec != std::errc() || result.ptr == begin) {
     return false;
   }
+  value = parsed;
+  return true;
 }
 
 bool parse_json_string_field(const std::string &text, const std::string &field,
                              std::string &value) {
-  const std::regex pattern("\"" + field + "\"\\s*:\\s*\"((?:\\\\.|[^\"])*)\"");
-  std::smatch match;
-  if (!std::regex_search(text, match, pattern)) {
+  size_t position = find_json_field_value(text, field);
+  if (position == std::string::npos || position >= text.size() ||
+      text[position] != '"') {
     return false;
   }
-  value = json_unescape(match[1].str());
-  return true;
+
+  std::string parsed;
+  parsed.reserve(text.size() - position);
+  for (++position; position < text.size(); ++position) {
+    const char ch = text[position];
+    if (ch == '"') {
+      value = std::move(parsed);
+      return true;
+    }
+    if (ch != '\\' || position + 1 >= text.size()) {
+      parsed.push_back(ch);
+      continue;
+    }
+
+    const char escaped = text[++position];
+    switch (escaped) {
+      case 'n':
+        parsed.push_back('\n');
+        break;
+      case 'r':
+        parsed.push_back('\r');
+        break;
+      case 't':
+        parsed.push_back('\t');
+        break;
+      default:
+        parsed.push_back(escaped);
+        break;
+    }
+  }
+  return false;
 }
 
 bool parse_json_bool_field(const std::string &text, const std::string &field,
                            bool &value) {
-  const std::regex pattern("\"" + field + "\"\\s*:\\s*(true|false|1|0)");
-  std::smatch match;
-  if (!std::regex_search(text, match, pattern)) {
+  const size_t position = find_json_field_value(text, field);
+  if (position == std::string::npos) {
     return false;
   }
 
-  const std::string raw = match[1].str();
-  value = raw == "true" || raw == "1";
-  return true;
+  if (text.compare(position, 4, "true") == 0 ||
+      (position < text.size() && text[position] == '1')) {
+    value = true;
+    return true;
+  }
+  if (text.compare(position, 5, "false") == 0 ||
+      (position < text.size() && text[position] == '0')) {
+    value = false;
+    return true;
+  }
+  return false;
 }
 
 std::vector<std::string> extract_document_objects(const std::string &content) {
