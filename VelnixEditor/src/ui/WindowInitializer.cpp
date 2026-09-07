@@ -648,14 +648,20 @@ EditorWindow::WindowComponents WindowInitializer::createWindowComponents() {
   components.statusEolButton = status_menu_button(0.5f, 72);
   components.statusEncodingButton = status_menu_button(0.5f, 104);
   components.statusBarLabel = gtk_label_new("");
+  components.statusSelectionLabel = gtk_label_new("");
   gtk_widget_set_halign(components.statusBarLabel, GTK_ALIGN_START);
+  gtk_widget_set_no_show_all(components.statusSelectionLabel, TRUE);
   gtk_widget_set_margin_start(components.statusLanguageButton, 4);
   gtk_widget_set_margin_start(components.statusBarLabel, 8);
   gtk_widget_set_margin_end(components.statusBarLabel, 8);
+  gtk_widget_set_margin_start(components.statusSelectionLabel, 8);
+  gtk_widget_set_margin_end(components.statusSelectionLabel, 8);
   gtk_box_pack_start(GTK_BOX(components.statusBar),
                      components.statusLanguageButton, TRUE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(components.statusBar), components.statusBarLabel,
                      FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(components.statusBar),
+                     components.statusSelectionLabel, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(components.statusBar), status_separator(), FALSE,
                      FALSE, 0);
   gtk_box_pack_start(GTK_BOX(components.statusBar), components.statusEolButton,

@@ -44,6 +44,7 @@ const std::vector<TranslationRow> kTranslations{
     {"status.eol", "EOL", "改行", "줄 바꿈", "Fin de línea", "Fim de linha", "Zeilenende", "Fin de ligne", "نهاية السطر", "行尾", "行尾", "行尾"},
     {"status.language", "Language", "言語", "언어", "Idioma", "Linguagem", "Sprache", "Langage", "اللغة", "語言", "语言", "語言"},
     {"status.read_only", "Read Only", "読み取り専用", "읽기 전용", "Solo lectura", "Somente leitura", "Schreibgeschützt", "Lecture seule", "للقراءة فقط", "唯讀", "只读", "唯讀"},
+    {"status.selected_characters", "%lld selected", "%lld 文字選択", "%lld자 선택됨", "%lld seleccionados", "%lld selecionados", "%lld ausgewählt", "%lld sélectionnés", "تم تحديد %lld", "已選取 %lld 個字元", "已选择 %lld 个字符", "已選取 %lld 個字元"},
     {"menu.file", "File", "ファイル", "파일", "Archivo", "Arquivo", "Datei", "Fichier", "ملف", "檔案", "文件", "檔案"},
     {"menu.new", "New", "新規", "새로 만들기", "Nuevo", "Novo", "Neu", "Nouveau", "جديد", "新增", "新建", "新增"},
     {"menu.open", "Open", "開く", "열기", "Abrir", "Abrir", "Öffnen", "Ouvrir", "فتح", "開啟", "打开", "開啟"},

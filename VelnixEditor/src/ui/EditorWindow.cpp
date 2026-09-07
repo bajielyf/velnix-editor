@@ -1063,6 +1063,7 @@ void EditorWindow::installWindowComponents(
   showEolMarkersMenuItem = components.showEolMarkersMenuItem;
   statusBar = components.statusBar;
   statusBarLabel = components.statusBarLabel;
+  statusSelectionLabel = components.statusSelectionLabel;
   statusEncodingButton = components.statusEncodingButton;
   statusEolButton = components.statusEolButton;
   statusLanguageButton = components.statusLanguageButton;
@@ -1429,6 +1430,9 @@ void EditorWindow::refreshDynamicHighlights(int index, int updateFlags) {
   updateBraceHighlightingForDocument(*doc, false, currentPos);
   if (selectionChanged) {
     updateCurrentColumnHighlightForDocument(*doc, false, currentPos);
+    if (index == currentDocumentIndex) {
+      update_status_bar();
+    }
   }
   if (contentChanged || selectionChanged) {
     updateSelectedKeywordHighlightForDocument(*doc, contentChanged);
@@ -2797,7 +2801,7 @@ void EditorWindow::setCurrentDocumentEolMode(EolMode eolMode) {
 
 void EditorWindow::update_status_bar() {
   if (!statusEncodingButton || !statusEolButton || !statusLanguageButton ||
-      !statusBarLabel) {
+      !statusBarLabel || !statusSelectionLabel) {
     return;
   }
 
@@ -2845,6 +2849,33 @@ void EditorWindow::update_status_bar() {
   gtk_widget_set_sensitive(statusEolButton,
                            doc && !doc->readOnly ? TRUE : FALSE);
   gtk_widget_set_sensitive(statusLanguageButton, doc ? TRUE : FALSE);
+
+  sptr_t selectedCharacters = 0;
+  if (doc && doc->scintilla) {
+    const sptr_t selectionCount = scintilla_send_message(
+        SCINTILLA(doc->scintilla), SCI_GETSELECTIONS, 0, 0);
+    for (sptr_t selection = 0; selection < selectionCount; ++selection) {
+      const sptr_t start = scintilla_send_message(
+          SCINTILLA(doc->scintilla), SCI_GETSELECTIONNSTART, selection, 0);
+      const sptr_t end = scintilla_send_message(
+          SCINTILLA(doc->scintilla), SCI_GETSELECTIONNEND, selection, 0);
+      if (end > start) {
+        selectedCharacters += scintilla_send_message(
+            SCINTILLA(doc->scintilla), SCI_COUNTCHARACTERS, start, end);
+      }
+    }
+  }
+  if (selectedCharacters > 0) {
+    gchar *selectionText = g_strdup_printf(
+        Localization::text("status.selected_characters"),
+        static_cast<long long>(selectedCharacters));
+    gtk_label_set_text(GTK_LABEL(statusSelectionLabel), selectionText);
+    g_free(selectionText);
+    gtk_widget_show(statusSelectionLabel);
+  } else {
+    gtk_label_set_text(GTK_LABEL(statusSelectionLabel), "");
+    gtk_widget_hide(statusSelectionLabel);
+  }
 
   std::string status;
   if (doc && doc->readOnly) {

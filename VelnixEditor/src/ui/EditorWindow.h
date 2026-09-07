@@ -35,6 +35,7 @@ public:
         GtkWidget *showEolMarkersMenuItem = nullptr;
         GtkWidget *statusBar = nullptr;
         GtkWidget *statusBarLabel = nullptr;
+        GtkWidget *statusSelectionLabel = nullptr;
         GtkWidget *statusEncodingButton = nullptr;
         GtkWidget *statusEolButton = nullptr;
         GtkWidget *statusLanguageButton = nullptr;
@@ -491,6 +492,7 @@ private:
     GtkWidget *showEolMarkersMenuItem = nullptr;
     GtkWidget *statusBar = nullptr;
     GtkWidget *statusBarLabel = nullptr;
+    GtkWidget *statusSelectionLabel = nullptr;
     GtkWidget *statusEncodingButton = nullptr;
     GtkWidget *statusEolButton = nullptr;
     GtkWidget *statusLanguageButton = nullptr;
