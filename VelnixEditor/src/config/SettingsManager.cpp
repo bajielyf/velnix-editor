@@ -9,8 +9,86 @@
 #include "ui/Localization.h"
 
 #include <filesystem>
+#include <algorithm>
+#include <vector>
 
 namespace {
+
+struct FontOption {
+  std::string name;
+  bool monospace;
+};
+
+int font_priority(const std::string &name) {
+  const char *preferred[] = {"JetBrains Mono", "Fira Code", "Cascadia Code",
+                            "Source Code Pro", "IBM Plex Mono", "Iosevka",
+                            "Hack", "Ubuntu Mono", "DejaVu Sans Mono",
+                            "Sarasa Mono SC", "Noto Sans Mono CJK SC",
+                            "Source Han Mono SC"};
+  for (int i = 0; i < static_cast<int>(sizeof(preferred) / sizeof(preferred[0])); ++i) {
+    if (name == preferred[i]) return i;
+  }
+  return 100;
+}
+
+struct FontPicker {
+  GtkWidget *combo;
+  GtkWidget *size;
+  GtkWidget *monospaceOnly;
+  GtkWidget *preview;
+  GtkWidget *warning;
+  std::vector<FontOption> fonts;
+
+  std::string selectedFamily() const {
+    const gchar *id = gtk_combo_box_get_active_id(GTK_COMBO_BOX(combo));
+    return id ? id : "Monospace";
+  }
+
+  void refreshPreview() {
+    const std::string family = selectedFamily();
+    PangoFontDescription *description = pango_font_description_new();
+    pango_font_description_set_family(description,
+                                       family.empty() ? "Monospace" : family.c_str());
+    pango_font_description_set_size(description,
+        gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(size)) * PANGO_SCALE);
+    PangoAttrList *attributes = pango_attr_list_new();
+    pango_attr_list_insert(attributes, pango_attr_font_desc_new(description));
+    gtk_label_set_attributes(GTK_LABEL(preview), attributes);
+    pango_attr_list_unref(attributes);
+    pango_font_description_free(description);
+
+    const bool available = family.empty() ||
+        g_ascii_strcasecmp(family.c_str(), "Monospace") == 0 ||
+        std::any_of(fonts.begin(), fonts.end(), [&](const FontOption &font) {
+          return g_ascii_strcasecmp(font.name.c_str(), family.c_str()) == 0;
+        });
+    gtk_widget_set_visible(warning, !available);
+  }
+
+  void populate() {
+    const std::string selected = selectedFamily();
+    gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(combo));
+    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combo), "Monospace", "Monospace");
+    const bool onlyMono = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(monospaceOnly));
+    bool selectedAdded = g_ascii_strcasecmp(selected.c_str(), "Monospace") == 0;
+    for (const auto &font : fonts) {
+      if ((!onlyMono || font.monospace) &&
+          g_ascii_strcasecmp(font.name.c_str(), "Monospace") != 0) {
+        gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combo), font.name.c_str(),
+                                  font.name.c_str());
+        selectedAdded = selectedAdded ||
+            g_ascii_strcasecmp(font.name.c_str(), selected.c_str()) == 0;
+      }
+    }
+    if (!selectedAdded && !selected.empty()) {
+      gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combo), selected.c_str(),
+                                selected.c_str());
+    }
+    gtk_combo_box_set_active_id(GTK_COMBO_BOX(combo),
+                                selected.empty() ? "Monospace" : selected.c_str());
+    refreshPreview();
+  }
+};
 
 bool migrate_config_file(const std::string &sourcePath,
                          const std::string &targetPath,
@@ -484,10 +562,8 @@ void SettingsManager::show_preferences_dialog() {
   attach_labeled_widget(display_grid, Localization::text("pref.line_wrap_mode"), line_wrap_combo,
                         display_row);
 
-  GtkWidget *font_family_entry = gtk_entry_new();
-  gtk_entry_set_text(GTK_ENTRY(font_family_entry),
-                     currentConfig.fontFamily.c_str());
-  attach_labeled_widget(display_grid, Localization::text("pref.font_family"), font_family_entry,
+  GtkWidget *font_family_combo = gtk_combo_box_text_new();
+  attach_labeled_widget(display_grid, Localization::text("pref.font_family"), font_family_combo,
                         display_row);
 
   GtkAdjustment *font_size_adjustment =
@@ -495,6 +571,61 @@ void SettingsManager::show_preferences_dialog() {
   GtkWidget *font_size_spin = gtk_spin_button_new(font_size_adjustment, 1, 0);
   attach_labeled_widget(display_grid, Localization::text("pref.font_size"), font_size_spin,
                         display_row, false);
+
+  GtkWidget *monospace_only = gtk_check_button_new_with_label(
+      Localization::text("pref.monospace_only"));
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(monospace_only), TRUE);
+  attach_check(display_grid, monospace_only, display_row);
+
+  GtkWidget *font_preview = gtk_label_new(
+      "AaBb 0123456789  O0 Il1\nif (value != 0) { return true; }\n中文预览 · 日本語 · 한국어");
+  gtk_label_set_xalign(GTK_LABEL(font_preview), 0);
+  GtkWidget *preview_scroll = gtk_scrolled_window_new(nullptr, nullptr);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(preview_scroll),
+                                 GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+  gtk_widget_set_size_request(preview_scroll, -1, 110);
+  gtk_container_add(GTK_CONTAINER(preview_scroll), font_preview);
+  attach_labeled_widget(display_grid, Localization::text("pref.font_preview"),
+                        preview_scroll, display_row);
+
+  GtkWidget *font_warning = gtk_label_new(Localization::text("pref.font_missing"));
+  gtk_label_set_line_wrap(GTK_LABEL(font_warning), TRUE);
+  gtk_label_set_xalign(GTK_LABEL(font_warning), 0);
+  gtk_widget_set_no_show_all(font_warning, TRUE);
+  gtk_grid_attach(GTK_GRID(display_grid), font_warning, 1, display_row++, 1, 1);
+
+  FontPicker fontPicker{font_family_combo, font_size_spin,
+                        monospace_only, font_preview, font_warning, {}};
+  PangoFontFamily **families = nullptr;
+  int familyCount = 0;
+  pango_context_list_families(gtk_widget_get_pango_context(dialog), &families, &familyCount);
+  for (int i = 0; i < familyCount; ++i) {
+    fontPicker.fonts.push_back({pango_font_family_get_name(families[i]),
+                                pango_font_family_is_monospace(families[i]) != FALSE});
+  }
+  g_free(families);
+  std::sort(fontPicker.fonts.begin(), fontPicker.fonts.end(),
+            [](const FontOption &a, const FontOption &b) {
+              const int ap = font_priority(a.name), bp = font_priority(b.name);
+              return ap != bp ? ap < bp : g_utf8_collate(a.name.c_str(), b.name.c_str()) < 0;
+            });
+  const std::string configuredFont = currentConfig.fontFamily.empty()
+      ? "Monospace"
+      : currentConfig.fontFamily;
+  gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(font_family_combo),
+                            configuredFont.c_str(), configuredFont.c_str());
+  gtk_combo_box_set_active_id(GTK_COMBO_BOX(font_family_combo),
+                              configuredFont.c_str());
+  fontPicker.populate();
+  g_signal_connect(font_family_combo, "changed", G_CALLBACK(+[](GtkComboBox *, gpointer data) {
+    static_cast<FontPicker *>(data)->refreshPreview();
+  }), &fontPicker);
+  g_signal_connect(font_size_spin, "value-changed", G_CALLBACK(+[](GtkSpinButton *, gpointer data) {
+    static_cast<FontPicker *>(data)->refreshPreview();
+  }), &fontPicker);
+  g_signal_connect(monospace_only, "toggled", G_CALLBACK(+[](GtkToggleButton *, gpointer data) {
+    static_cast<FontPicker *>(data)->populate();
+  }), &fontPicker);
 
   GtkWidget *show_whitespace_check =
       gtk_check_button_new_with_label(
@@ -722,7 +853,7 @@ void SettingsManager::show_preferences_dialog() {
     if (selected_wrap_mode) {
       updatedConfig.lineWrapMode = selected_wrap_mode;
     }
-    updatedConfig.fontFamily = gtk_entry_get_text(GTK_ENTRY(font_family_entry));
+    updatedConfig.fontFamily = fontPicker.selectedFamily();
     updatedConfig.fontSize =
         gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(font_size_spin));
     updatedConfig.showWhitespace =
@@ -795,5 +926,8 @@ void SettingsManager::show_preferences_dialog() {
     recentFiles->refresh_recent_menu();
   }
 
+  g_signal_handlers_disconnect_by_data(font_family_combo, &fontPicker);
+  g_signal_handlers_disconnect_by_data(font_size_spin, &fontPicker);
+  g_signal_handlers_disconnect_by_data(monospace_only, &fontPicker);
   gtk_widget_destroy(dialog);
 }
