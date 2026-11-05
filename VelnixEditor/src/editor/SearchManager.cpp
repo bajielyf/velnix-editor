@@ -469,30 +469,32 @@ void SearchManager::refresh_localized_ui() {
 }
 
 void SearchManager::create_find_dialog() {
-    find_dialog = gtk_dialog_new_with_buttons(Localization::text("search.find_title"),
-                                              nullptr,
-                                              static_cast<GtkDialogFlags>(0),
-                                              Localization::text("dialog.find_next"), GTK_RESPONSE_OK,
-                                              Localization::text("dialog.find_all"), GTK_RESPONSE_APPLY,
-                                              Localization::text("dialog.cancel"), GTK_RESPONSE_CANCEL,
-                                              NULL);
+    find_dialog = gtk_dialog_new();
+    gtk_window_set_title(GTK_WINDOW(find_dialog),
+                         Localization::text("search.find_title"));
     gtk_window_set_type_hint(GTK_WINDOW(find_dialog), GDK_WINDOW_TYPE_HINT_NORMAL);
     Localization::bind_window_title(find_dialog, "search.find_title");
-    bind_dialog_response_button(find_dialog, GTK_RESPONSE_OK, "dialog.find_next");
-    bind_dialog_response_button(find_dialog, GTK_RESPONSE_APPLY, "dialog.find_all");
-    bind_dialog_response_button(find_dialog, GTK_RESPONSE_CANCEL, "dialog.cancel");
 
     GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(find_dialog));
-    GtkWidget *grid = gtk_grid_new();
-    configure_search_grid(grid);
-    gtk_container_add(GTK_CONTAINER(content_area), grid);
+    GtkWidget *layout = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
+    gtk_container_add(GTK_CONTAINER(content_area), layout);
+
+    GtkWidget *content_grid = gtk_grid_new();
+    gtk_grid_set_row_spacing(GTK_GRID(content_grid), 10);
+    gtk_grid_set_column_spacing(GTK_GRID(content_grid), 16);
+    gtk_widget_set_hexpand(content_grid, TRUE);
+    gtk_widget_set_margin_start(content_grid, 12);
+    gtk_widget_set_margin_end(content_grid, 12);
+    gtk_widget_set_margin_top(content_grid, 12);
+    gtk_widget_set_margin_bottom(content_grid, 8);
+    gtk_box_pack_start(GTK_BOX(layout), content_grid, TRUE, TRUE, 0);
 
     // Find label and entry
     GtkWidget *find_label = localized_label("search.find_what");
     find_entry = gtk_entry_new();
     gtk_widget_set_hexpand(find_entry, TRUE);
-    gtk_grid_attach(GTK_GRID(grid), find_label, 0, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), find_entry, 1, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(content_grid), find_label, 0, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(content_grid), find_entry, 1, 0, 1, 1);
 
     // Options
     case_sensitive_check = localized_check_button("search.case_sensitive");
@@ -505,21 +507,80 @@ void SearchManager::create_find_dialog() {
                                  editorWindow->isSearchWrapAroundEnabled());
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(search_all_docs_check),
                                  editorWindow->isSearchAllDocumentsEnabled());
+    gtk_grid_attach(GTK_GRID(content_grid), backwards_check, 2, 0, 1, 1);
 
-    gtk_grid_attach(GTK_GRID(grid), backwards_check, 2, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), case_sensitive_check, 0, 1, 3, 1);
-    gtk_grid_attach(GTK_GRID(grid), whole_word_check, 0, 2, 3, 1);
-    gtk_grid_attach(GTK_GRID(grid), regex_check, 0, 3, 3, 1);
-    gtk_grid_attach(GTK_GRID(grid), wrap_around_check, 0, 4, 3, 1);
-    gtk_grid_attach(GTK_GRID(grid), search_all_docs_check, 0, 5, 3, 1);
+    GtkWidget *options_grid = gtk_grid_new();
+    gtk_grid_set_row_spacing(GTK_GRID(options_grid), 6);
+    gtk_grid_set_column_spacing(GTK_GRID(options_grid), 18);
+    gtk_widget_set_hexpand(options_grid, TRUE);
+    gtk_widget_set_margin_start(options_grid, 4);
+    gtk_widget_set_margin_top(options_grid, 2);
+    gtk_grid_attach(GTK_GRID(options_grid), case_sensitive_check, 0, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(options_grid), whole_word_check, 1, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(options_grid), regex_check, 0, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID(options_grid), wrap_around_check, 1, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID(options_grid), search_all_docs_check, 0, 2, 2, 1);
+    gtk_grid_attach(GTK_GRID(content_grid), options_grid, 0, 1, 2, 1);
+
+    GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 7);
+    gtk_widget_set_valign(button_box, GTK_ALIGN_START);
+    gtk_grid_attach(GTK_GRID(content_grid), button_box, 2, 1, 1, 1);
+    GtkWidget *find_next_button = localized_button("dialog.find_next");
+    GtkWidget *find_all_button = localized_button("dialog.find_all");
+    GtkWidget *statistics_button = localized_button("search.statistics");
+    GtkWidget *cancel_button = localized_button("dialog.cancel");
+    gtk_widget_set_tooltip_text(statistics_button,
+                                Localization::text("search.statistics_tooltip"));
+    gtk_widget_set_size_request(find_next_button, 126, -1);
+    gtk_widget_set_size_request(find_all_button, 126, -1);
+    gtk_widget_set_size_request(statistics_button, 126, -1);
+    gtk_widget_set_size_request(cancel_button, 126, -1);
+    gtk_box_pack_start(GTK_BOX(button_box), find_next_button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(button_box), find_all_button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(button_box), statistics_button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(button_box), cancel_button, FALSE, FALSE, 0);
+
+    GtkWidget *status_bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_name(status_bar, "find-status-bar");
+    GtkCssProvider *status_css = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(
+        status_css,
+        "#find-status-bar { background-color: alpha(@theme_fg_color, 0.045); }",
+        -1, nullptr);
+    gtk_style_context_add_provider(
+        gtk_widget_get_style_context(status_bar),
+        GTK_STYLE_PROVIDER(status_css), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(status_css);
+    find_statistics_status_label = localized_label("search.statistics_ready");
+    gtk_label_set_xalign(GTK_LABEL(find_statistics_status_label), 0.0f);
+    gtk_widget_set_margin_start(find_statistics_status_label, 8);
+    gtk_widget_set_margin_end(find_statistics_status_label, 8);
+    gtk_widget_set_margin_top(find_statistics_status_label, 5);
+    gtk_widget_set_margin_bottom(find_statistics_status_label, 5);
+    gtk_box_pack_start(GTK_BOX(status_bar), find_statistics_status_label,
+                       TRUE, TRUE, 0);
+    gtk_box_pack_end(GTK_BOX(layout), status_bar, FALSE, FALSE, 0);
+
+    g_object_set_data(G_OBJECT(statistics_button), "statistics-entry", find_entry);
+    g_object_set_data(G_OBJECT(statistics_button), "statistics-case", case_sensitive_check);
+    g_object_set_data(G_OBJECT(statistics_button), "statistics-whole", whole_word_check);
+    g_object_set_data(G_OBJECT(statistics_button), "statistics-regex", regex_check);
 
     // Connect signals
     g_signal_connect(find_dialog, "response", G_CALLBACK(on_find_close_clicked), this);
     g_signal_connect(find_dialog, "delete-event", G_CALLBACK(on_dialog_delete_event), this);
     g_signal_connect(find_dialog, "destroy", G_CALLBACK(on_find_dialog_destroyed), this);
     g_signal_connect(find_entry, "activate", G_CALLBACK(on_find_next_clicked), this);
+    g_signal_connect(find_next_button, "clicked",
+                     G_CALLBACK(on_find_next_clicked), this);
+    g_signal_connect(find_all_button, "clicked",
+                     G_CALLBACK(on_find_all_clicked), this);
+    g_signal_connect(statistics_button, "clicked",
+                     G_CALLBACK(on_find_statistics_clicked), this);
+    g_signal_connect(cancel_button, "clicked",
+                     G_CALLBACK(on_find_cancel_clicked), this);
 
-    gtk_widget_set_size_request(find_dialog, 400, 230);
+    gtk_widget_set_size_request(find_dialog, 590, 350);
 }
 
 void SearchManager::create_replace_dialog() {
@@ -764,6 +825,61 @@ void SearchManager::on_find_all_clicked(GtkButton *button, gpointer data) {
                 gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->regex_check));
 
     self->find_all(pattern, case_sensitive, whole_word, regex);
+}
+
+void SearchManager::on_find_statistics_clicked(GtkButton *button, gpointer data) {
+    SearchManager *self = static_cast<SearchManager *>(data);
+    GtkWidget *entry = GTK_WIDGET(g_object_get_data(G_OBJECT(button), "statistics-entry"));
+    GtkWidget *case_check = GTK_WIDGET(g_object_get_data(G_OBJECT(button), "statistics-case"));
+    GtkWidget *whole_check = GTK_WIDGET(g_object_get_data(G_OBJECT(button), "statistics-whole"));
+    GtkWidget *regex_widget = GTK_WIDGET(g_object_get_data(G_OBJECT(button), "statistics-regex"));
+    if (!entry || !self->find_statistics_status_label) {
+        return;
+    }
+
+    const char *pattern = gtk_entry_get_text(GTK_ENTRY(entry));
+    if (!pattern || !*pattern) {
+        gtk_label_set_text(GTK_LABEL(self->find_statistics_status_label),
+                           Localization::text("search.statistics_empty"));
+        return;
+    }
+
+    SearchQuery query;
+    query.pattern = pattern;
+    query.caseSensitive = case_check &&
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(case_check));
+    query.wholeWord = whole_check &&
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(whole_check));
+    query.regex = regex_widget &&
+        gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(regex_widget));
+    query.searchAllDocuments = false;
+
+    int match_count = 0;
+    std::string error_message;
+    for (const SearchDocumentSnapshot &document :
+         self->snapshot_search_documents(false)) {
+        const auto matches = find_pattern_matches(document.text, query, nullptr,
+                                                  nullptr, &error_message);
+        if (!error_message.empty()) {
+            gtk_label_set_text(GTK_LABEL(self->find_statistics_status_label),
+                               error_message.c_str());
+            return;
+        }
+        match_count += static_cast<int>(matches.size());
+    }
+
+    const std::string status =
+        std::string(Localization::text("search.statistics_matches")) +
+        std::to_string(match_count);
+    gtk_label_set_text(GTK_LABEL(self->find_statistics_status_label), status.c_str());
+}
+
+void SearchManager::on_find_cancel_clicked(GtkButton *button, gpointer data) {
+    (void)button;
+    SearchManager *self = static_cast<SearchManager *>(data);
+    if (self->find_dialog) {
+        gtk_widget_hide(self->find_dialog);
+    }
 }
 
 void SearchManager::on_clear_results_clicked(GtkButton *button, gpointer data) {

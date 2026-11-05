@@ -134,6 +134,7 @@ private:
     // Dialog widgets
     GtkWidget *find_dialog = nullptr;
     GtkWidget *replace_dialog = nullptr;
+    GtkWidget *find_statistics_status_label = nullptr;
 
     // Dialog controls
     GtkWidget *find_entry = nullptr;
@@ -224,6 +225,8 @@ private:
     static void on_find_next_clicked(GtkEntry *entry, gpointer data);
     static void on_find_previous_clicked(GtkButton *button, gpointer data);
     static void on_find_all_clicked(GtkButton *button, gpointer data);
+    static void on_find_statistics_clicked(GtkButton *button, gpointer data);
+    static void on_find_cancel_clicked(GtkButton *button, gpointer data);
     static void on_replace_next_clicked(GtkEntry *entry, gpointer data);
     static void on_replace_all_clicked(GtkButton *button, gpointer data);
     static void on_find_close_clicked(GtkDialog *dialog, gint response_id, gpointer data);
