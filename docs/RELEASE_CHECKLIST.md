@@ -17,6 +17,8 @@ Use this checklist when preparing a Velnix Editor release.
 - [ ] Build `test_document_state`, `test_config_store`,
   `test_document_operations`, and `test_update_checker`
 - [ ] Run available non-GUI test targets documented in [TESTING.md](TESTING.md)
+- [ ] Run assert-based tests in a Debug build; resolve the GB18030 detection
+  assertion documented in [KNOWN_ISSUES.md](KNOWN_ISSUES.md) before publishing
 - [ ] Run the key manual test or validation flow
 
 ## 3. Packaging and Installation
@@ -35,8 +37,12 @@ Use this checklist when preparing a Velnix Editor release.
 - [ ] Encoding detection, display, UTF conversion, and reopen with encoding
 - [ ] EOL conversion from the Edit menu, context menu, and status bar
 - [ ] Language, EOL, and encoding status-bar controls
+- [ ] Unicode selection counts, multiple selections, and hiding empty counts
+- [ ] Font dropdown, monospaced filter, live preview, and configuration persistence
+- [ ] Search Results toggle chevron, spacing, and panel visibility
 - [ ] Recent files, preferences, and shortcut configuration
 - [ ] Session restore
+- [ ] Restore a large unsaved document without losing content or crashing
 - [ ] Optional command-line file arguments append after restored session tabs
 - [ ] Macro recording, playback, and management
 - [ ] External file modification detection and reload

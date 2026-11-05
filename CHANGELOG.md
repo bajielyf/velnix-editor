@@ -2,6 +2,32 @@
 
 All notable project-level changes intended for published releases should be recorded in this file.
 
+## [0.1.6] - 2026-11-05
+
+Patch release focused on session restore reliability, selection statistics,
+font preferences, and clearer search result controls.
+
+### Added
+
+- Added localized selection character counts to the status bar, immediately
+  before the EOL indicator, counting Unicode characters across multiple
+  selections and hiding the count when nothing is selected.
+- Added a system font dropdown with monospaced filtering, live font and size
+  preview, and a warning when the configured font is not installed.
+
+### Changed
+
+- Prioritized common programming fonts in the font selector, listing the
+  recommended CJK coding fonts after Latin coding fonts.
+- Added a spaced downward chevron to the Search Results toggle to indicate
+  that clicking it hides the results panel.
+
+### Fixed
+
+- Fixed startup crashes when restoring large unsaved documents from
+  `session.json` by replacing recursive regular-expression matching with
+  iterative parsing while preserving the full document content.
+
 ## [0.1.5] - 2026-08-14
 
 Patch release focused on legacy-encoding workflows, interactive document-state

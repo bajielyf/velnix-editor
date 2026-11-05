@@ -1,6 +1,6 @@
 # Velnix Editor Known Limitations
 
-This document records known limitations for the Velnix Editor 0.1.5 release.
+This document records known limitations for the Velnix Editor 0.1.6 release.
 
 ## 1. Search Responsiveness
 
@@ -59,6 +59,12 @@ script-aware validation. Some short files and similar single-byte encodings do
 not contain enough evidence for an unambiguous result. Use **Reopen with
 Encoding** when a file is decoded incorrectly.
 
+Release validation on the current Linux/ICU 74.2 environment found that the
+Debug `test_document_operations` target fails `test_decode_gb18030`: the short
+GB18030 sample is not identified as `Gb18030`. The detection implementation and
+test are unchanged since `v0.1.5`. Investigate this failure before publishing;
+Release builds can skip assert-based checks and are not sufficient validation.
+
 Planned follow-up:
 
 - expand regression samples for short and mixed-script documents
@@ -80,7 +86,7 @@ Planned follow-up:
 
 ## 7. Plugin Support
 
-Velnix Editor 0.1.5 does not include a plugin system. This release keeps
+Velnix Editor 0.1.6 does not include a plugin system. This release keeps
 the extension boundary intentionally simple while the core editor behavior
 stabilizes.
 

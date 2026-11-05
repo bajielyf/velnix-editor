@@ -7,7 +7,7 @@ and source-code work.
 
 Built with GTK, Scintilla, and Lexilla, Velnix Editor focuses on direct, efficient editing workflows in a clean native desktop application.
 
-Current release target: **0.1.5**.
+Current release target: **0.1.6**.
 
 ## Screenshot
 
@@ -53,6 +53,8 @@ Current demos focus on implemented editing workflows in the current release.
 - Automatic legacy-encoding detection, manual reopen-with-encoding support,
   and lossless UTF conversion workflows
 - Interactive status-bar controls for language, EOL mode, and encoding
+- Unicode selection character counts in the status bar
+- System font selection with monospaced filtering and live font/size preview
 - Automatic and manual update checks, preferences, shortcuts, recent files,
   and external-change prompts
 
@@ -104,8 +106,8 @@ To publish a GitHub Release, first make sure the version in `CMakeLists.txt`
 and `CHANGELOG.md` is current, then push a matching version tag:
 
 ```bash
-git tag v0.1.5
-git push origin v0.1.5
+git tag v0.1.6
+git push origin v0.1.6
 ```
 
 The tag must match the CMake project version. A successful tagged build uses
@@ -126,7 +128,8 @@ User configuration is stored under `~/.config/velnix-editor/` by default.
 - [Known Limitations](docs/KNOWN_ISSUES.md)
 - [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md)
 - [Release Checklist](docs/RELEASE_CHECKLIST.md)
-- [Release Notes 0.1.5](docs/RELEASE_NOTES_0.1.5.md)
+- [Release Notes 0.1.6](docs/RELEASE_NOTES_0.1.6.md)
+- [Release Notes 0.1.5](docs/RELEASE_NOTES_0.1.5.md) - historical release snapshot
 - [Release Notes 0.1.4](docs/RELEASE_NOTES_0.1.4.md) - historical release snapshot
 - [Release Notes 0.1.3](docs/RELEASE_NOTES_0.1.3.md) - historical release snapshot
 - [Release Notes 0.1.2](docs/RELEASE_NOTES_0.1.2.md) - historical release snapshot

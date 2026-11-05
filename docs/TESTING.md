@@ -49,6 +49,18 @@ After building, run the non-GUI test binaries directly:
 These binaries are not currently registered with CTest. If CTest integration is
 added later, update this document and the release checklist at the same time.
 
+Several tests use C++ `assert`, so run them in a Debug build to keep those
+checks enabled. A successful Release test run alone does not validate them:
+
+```bash
+cmake -S . -B build/release-validation -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/release-validation --target test_document_state test_config_store test_document_operations test_update_checker -j4
+./build/release-validation/VelnixEditor/test_document_state
+./build/release-validation/VelnixEditor/test_config_store
+./build/release-validation/VelnixEditor/test_document_operations
+./build/release-validation/VelnixEditor/test_update_checker
+```
+
 ## 4. Manual Smoke Test
 
 Before a release, run the main editor and verify the following flow:
@@ -69,6 +81,17 @@ Before a release, run the main editor and verify the following flow:
 - reopen a non-UTF file with an explicit encoding and verify lossless saving
 - convert among LF, CRLF, and CR from both the Edit menu and status bar
 - switch language, EOL mode, and encoding through the status-bar controls
+- select ASCII and CJK text, including multiple selections, and verify the
+  Unicode character count appears to the left of EOL and disappears on deselection
+- change the UI language and verify the selection count text updates
+- click the font selector text area and verify the dropdown opens; check the
+  monospaced filter, font ordering, live font/size preview, and persisted choice
+- verify Cancel leaves the editor font unchanged, and a configured missing
+  font is preserved with a warning in preferences
+- verify the Search Results button has a spaced downward chevron and hides
+  the results panel when clicked
+- restore a session containing a large unsaved document and verify its complete
+  content, cursor, and scroll state survive restarting the editor
 - run **Check for Updates** from the Help menu and confirm the result dialog
 - close and reopen the application to confirm configuration persistence
 

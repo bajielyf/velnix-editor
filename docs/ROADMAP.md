@@ -5,7 +5,7 @@
 This roadmap tracks the current state of Velnix Editor, the remaining work
 before the next release, and the likely direction after that release.
 
-Last updated: 2026-08-14
+Last updated: 2026-11-05
 
 ## Current Positioning
 
@@ -66,6 +66,10 @@ package name, executable name, and release process.
 - The editor context menu exposes common editing, column selection, case
   conversion, whitespace, and custom-highlighting actions.
 - The status bar exposes interactive language, EOL, and encoding controls.
+- Localized Unicode selection counts appear before the status-bar EOL indicator.
+- Font preferences offer installed system fonts, monospaced filtering, and live
+  font/size preview, with recommended CJK coding fonts after Latin coding fonts.
+- The Search Results toggle includes a downward chevron indicating panel hiding.
 - LF, CRLF, and CR conversion is available from the Edit menu, context menu,
   and status bar.
 
@@ -84,6 +88,7 @@ package name, executable name, and release process.
 - Documents can be reloaded from disk.
 - Session restore reopens previous tabs and restores unsaved text, cursor, and
   scroll state on launch.
+- Iterative session parsing avoids recursive regex crashes on large unsaved text.
 
 ### 5. Encoding and EOL Handling
 
@@ -234,8 +239,8 @@ package name, executable name, and release process.
 - Improve performance in large-file and many-tab scenarios.
 - Improve confidence feedback for ambiguous legacy-encoding detection and
   manual reopening.
-- Continue improving the bottom status bar with total and selected character
-  counts and other useful document state.
+- Extend the existing status-bar selection counts with total character counts
+  and other useful document state.
 - Continue expanding editor context-menu coverage for document-level workflows.
 
 ### Low Priority
@@ -249,14 +254,14 @@ package name, executable name, and release process.
 
 ## Milestones
 
-### M1: 0.1.5 Patch Release Cleanup
+### M1: 0.1.6 Patch Release Cleanup
 
-- Confirm release metadata for version `0.1.5`.
+- Confirm release metadata for version `0.1.6`.
 - Confirm package contents and installed files.
 - Complete build, test, package, and install validation.
 - Finish release notes and known limitations.
 
-### M2: Patch Release, 0.1.5
+### M2: Patch Release, 0.1.6
 
 - Publish package artifact.
 - Publish changelog and known issues.
@@ -268,8 +273,7 @@ package name, executable name, and release process.
 - Improve search responsiveness and search result workflows.
 - Continue refining the search box interaction model and visible search states.
 - Improve preferences and shortcut configuration experience.
-- Improve the bottom status bar with character statistics and expand editor
-  context-menu workflows.
+- Continue refining status-bar information and editor context-menu workflows.
 - Add first-pass theme customization.
 - Add more complete editing behavior controls.
 
