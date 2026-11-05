@@ -875,6 +875,23 @@ void EquallySpaced(PangoLayout *layout, XYPOSITION *positions, size_t lenPositio
 	}
 }
 
+// All bytes of a UTF-8 character must share its trailing edge so hit testing
+// compares against the character midpoint rather than an interior byte.
+void MeasureUTF8Cluster(std::string_view text, int start, int end,
+	XYPOSITION position, XYPOSITION distance, XYPOSITION *positions) noexcept {
+	int characters = 0;
+	for (int i = start; i < end; ++i) {
+		if (i == start || !UTF8IsTrailByte(text[i]))
+			++characters;
+	}
+	int character = 0;
+	for (int i = start; i < end; ++i) {
+		if (i == start || !UTF8IsTrailByte(text[i]))
+			++character;
+		positions[i] = position - (characters - character) * distance / characters;
+	}
+}
+
 }
 
 void SurfaceImpl::MeasureWidths(const Font *font_, std::string_view text, XYPOSITION *positions) {
@@ -895,15 +912,8 @@ void SurfaceImpl::MeasureWidths(const Font *font_, std::string_view text, XYPOSI
 			}
 			while (!iti.finished) {
 				iti.Next();
-				const int places = iti.curIndex - i;
-				while (i < iti.curIndex) {
-					// Evenly distribute space among bytes of this cluster.
-					// Would be better to find number of characters and then
-					// divide evenly between characters with each byte of a character
-					// being at the same position.
-					positions[i] = iti.position - (iti.curIndex - 1 - i) * iti.distance / places;
-					i++;
-				}
+				MeasureUTF8Cluster(text, i, iti.curIndex, iti.position, iti.distance, positions);
+				i = iti.curIndex;
 			}
 			PLATFORM_ASSERT(static_cast<size_t>(i) == text.length());
 		} else {
@@ -1116,15 +1126,8 @@ void SurfaceImpl::MeasureWidthsUTF8(const Font *font_, std::string_view text, XY
 				}
 				return;
 			}
-			const int places = iti.curIndex - i;
-			while (i < iti.curIndex) {
-				// Evenly distribute space among bytes of this cluster.
-				// Would be better to find number of characters and then
-				// divide evenly between characters with each byte of a character
-				// being at the same position.
-				positions[i] = iti.position - (iti.curIndex - 1 - i) * iti.distance / places;
-				i++;
-			}
+			MeasureUTF8Cluster(text, i, iti.curIndex, iti.position, iti.distance, positions);
+			i = iti.curIndex;
 		}
 		PLATFORM_ASSERT(static_cast<size_t>(i) == text.length());
 	} else {
