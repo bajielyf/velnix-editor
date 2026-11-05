@@ -364,6 +364,12 @@ void SearchManager::create_search_results_panel(GtkWidget *parent) {
 
     search_results_header_bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
     search_results_toggle_button = localized_toggle_button("menu.search_results");
+    GtkWidget *hide_results_icon = gtk_image_new_from_icon_name(
+        "go-down-symbolic", GTK_ICON_SIZE_MENU);
+    gtk_widget_set_margin_start(hide_results_icon, 6);
+    gtk_button_set_image(GTK_BUTTON(search_results_toggle_button), hide_results_icon);
+    gtk_button_set_image_position(GTK_BUTTON(search_results_toggle_button), GTK_POS_RIGHT);
+    gtk_button_set_always_show_image(GTK_BUTTON(search_results_toggle_button), TRUE);
     GtkWidget *header_spacer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     GtkWidget *auto_refresh_button = localized_check_button("search.auto_refresh");
     GtkWidget *refresh_results_button_local = localized_button("search.refresh");
