@@ -1,6 +1,7 @@
 #include "ui/ScrollableTabBar.h"
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 
 namespace {
@@ -17,7 +18,8 @@ void document_tab_class_init(DocumentTabClass *klass) {
 
 void document_tab_init(DocumentTab *tab) {
   gtk_event_box_set_above_child(GTK_EVENT_BOX(tab), FALSE);
-  gtk_widget_add_events(GTK_WIDGET(tab), GDK_BUTTON_PRESS_MASK);
+  gtk_widget_add_events(GTK_WIDGET(tab), GDK_BUTTON_PRESS_MASK |
+      GDK_SCROLL_MASK | GDK_SMOOTH_SCROLL_MASK);
   gtk_style_context_add_class(gtk_widget_get_style_context(GTK_WIDGET(tab)), GTK_STYLE_CLASS_FLAT);
 }
 
@@ -99,6 +101,38 @@ public:
     gtk_box_pack_start(GTK_BOX(body), GTK_WIDGET(notebook), TRUE, TRUE, 0);
     gtk_widget_set_vexpand(root, TRUE);
 
+    for (GtkWidget *widget : {scroll, previous, next}) {
+      gtk_widget_add_events(widget, GDK_SCROLL_MASK | GDK_SMOOTH_SCROLL_MASK);
+      g_signal_connect(widget, "scroll-event", G_CALLBACK(+[](GtkWidget *, GdkEventScroll *event,
+                                                             gpointer data) -> gboolean {
+        auto *self = static_cast<ScrollableTabBar *>(data);
+        if (self->dragging) return TRUE;
+        double amount = 0;
+        switch (event->direction) {
+          case GDK_SCROLL_UP:
+          case GDK_SCROLL_LEFT: amount = -1; break;
+          case GDK_SCROLL_DOWN:
+          case GDK_SCROLL_RIGHT: amount = 1; break;
+          case GDK_SCROLL_SMOOTH:
+            amount = std::abs(event->delta_y) >= std::abs(event->delta_x)
+                ? event->delta_y : event->delta_x;
+            break;
+        }
+        if (amount != 0) self->move(amount);
+        return TRUE;
+      }), this);
+    }
+    // Observe editor presses before child widgets handle them, without claiming
+    // the gesture or interfering with caret positioning and selection.
+    GtkGesture *editorPress = gtk_gesture_multi_press_new(GTK_WIDGET(notebook));
+    gtk_event_controller_set_propagation_phase(GTK_EVENT_CONTROLLER(editorPress), GTK_PHASE_CAPTURE);
+    gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(editorPress), 0);
+    g_object_set_data_full(G_OBJECT(notebook), "tab-reveal-on-editor-press", editorPress, g_object_unref);
+    g_signal_connect(editorPress, "pressed", G_CALLBACK(+[](GtkGestureMultiPress *, gint,
+                                                          gdouble, gdouble, gpointer data) {
+      static_cast<ScrollableTabBar *>(data)->sync();
+    }), this);
+
     g_signal_connect(previous, "clicked", G_CALLBACK(+[](GtkButton *, gpointer data) {
       static_cast<ScrollableTabBar *>(data)->move(-1);
     }), this);
@@ -161,6 +195,8 @@ public:
       if (self->revealSource) g_source_remove(self->revealSource);
       self->revealSource = 0;
       g_signal_handlers_disconnect_by_data(self->notebook, self);
+      auto *editorPress = g_object_get_data(G_OBJECT(self->notebook), "tab-reveal-on-editor-press");
+      g_signal_handlers_disconnect_by_data(editorPress, self);
       GtkAdjustment *adjustment = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(self->scroll));
       g_signal_handlers_disconnect_by_data(adjustment, self);
     }), this);
@@ -232,7 +268,10 @@ public:
                                    gtk_adjustment_get_upper(adjustment) - 0.5);
   }
 
-  void move(int direction) {
+  void move(double direction) {
+    // Manual browsing wins over a reveal queued by a preceding page switch.
+    if (revealSource) g_source_remove(revealSource);
+    revealSource = 0;
     GtkAdjustment *adjustment = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scroll));
     const double step = std::max(80.0, gtk_adjustment_get_page_size(adjustment) / 2);
     const double maximum = std::max(gtk_adjustment_get_lower(adjustment),

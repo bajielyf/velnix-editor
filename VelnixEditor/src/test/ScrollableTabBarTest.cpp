@@ -60,6 +60,23 @@ void click(GtkWidget *widget) {
   settle();
 }
 
+void wheel(GtkWidget *widget, GdkScrollDirection direction, double dx = 0, double dy = 0) {
+  GdkWindow *window = GTK_IS_BUTTON(widget)
+      ? gtk_button_get_event_window(GTK_BUTTON(widget)) : gtk_widget_get_window(widget);
+  GdkEvent *event = gdk_event_new(GDK_SCROLL);
+  event->scroll.window = GDK_WINDOW(g_object_ref(window));
+  event->scroll.x = gdk_window_get_width(window) / 2;
+  event->scroll.y = gdk_window_get_height(window) / 2;
+  event->scroll.direction = direction;
+  event->scroll.delta_x = dx;
+  event->scroll.delta_y = dy;
+  gdk_event_set_device(event,
+      gdk_seat_get_pointer(gdk_display_get_default_seat(gdk_window_get_display(window))));
+  gtk_main_do_event(event);
+  gdk_event_free(event);
+  settle();
+}
+
 GtkWidget *appendClosablePage(GtkNotebook *notebook, GtkWidget **closeOut) {
   GtkWidget *page = gtk_label_new("content");
   GtkWidget *label = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
@@ -160,11 +177,20 @@ int main(int argc, char **argv) {
   gtk_container_add(GTK_CONTAINER(window), root);
   GtkWidget *first = nullptr;
   GtkWidget *last = nullptr;
+  int editorClicks = 0;
   for (int i = 0; i < 12; ++i) {
-    GtkWidget *page = gtk_label_new("Document content");
+    GtkWidget *page = gtk_event_box_new();
+    gtk_container_add(GTK_CONTAINER(page), gtk_label_new("Document content"));
     const std::string name = "Document " + std::to_string(i) + ".cpp";
     gtk_notebook_append_page(notebook, page, gtk_label_new(name.c_str()));
-    if (i == 0) first = page;
+    if (i == 0) {
+      first = page;
+      g_signal_connect(page, "button-press-event", G_CALLBACK(+[](GtkWidget *, GdkEventButton *,
+                                                                 gpointer data) -> gboolean {
+        ++*static_cast<int *>(data);
+        return TRUE;
+      }), &editorClicks);
+    }
     last = page;
   }
   gtk_widget_show_all(window);
@@ -187,10 +213,33 @@ int main(int argc, char **argv) {
   settle();
   check(gtk_adjustment_get_value(adjustment) == initial, "left arrow scrolls back");
   check(gtk_notebook_get_current_page(notebook) == 0, "left arrow preserves active document");
+  wheel(childAt(tabs, 0), GDK_SCROLL_DOWN);
+  const double wheelStep = gtk_adjustment_get_value(adjustment);
+  check(wheelStep > initial, "wheel over tab scrolls the tab strip");
+  check(gtk_notebook_get_current_page(notebook) == 0, "wheel preserves active document");
+  wheel(previous, GDK_SCROLL_UP);
+  check(gtk_adjustment_get_value(adjustment) == initial, "wheel over arrow scrolls left");
+  wheel(childAt(tabs, 0), GDK_SCROLL_SMOOTH, 0, 0.5);
+  check(gtk_adjustment_get_value(adjustment) > initial &&
+        gtk_adjustment_get_value(adjustment) < wheelStep, "smooth vertical scrolling supports fractional deltas");
+  wheel(previous, GDK_SCROLL_SMOOTH, -0.5, 0);
+  check(gtk_adjustment_get_value(adjustment) == initial, "smooth horizontal scrolling scrolls left");
+  for (int i = 0; i < 30; ++i) wheel(next, GDK_SCROLL_DOWN);
+  check(gtk_adjustment_get_value(adjustment) > initial, "wheel can browse beyond active tab");
+  check(gtk_notebook_get_current_page(notebook) == 0, "repeated wheel scrolling preserves active document");
+  click(first);
+  check(gtk_adjustment_get_value(adjustment) < 1, "editor click reveals current tab after wheel scrolling");
+  check(gtk_notebook_get_current_page(notebook) == 0, "editor click does not switch documents");
+  check(editorClicks == 1, "tab reveal does not consume the editor click");
   for (int i = 0; i < 30; ++i) gtk_button_clicked(GTK_BUTTON(next));
   settle();
   check(!gtk_widget_get_sensitive(next), "right arrow stops at final tab");
   check(gtk_notebook_get_current_page(notebook) == 0, "repeated scrolling preserves document");
+  click(first);
+  check(gtk_adjustment_get_value(adjustment) < 1, "editor click reveals current tab after arrow scrolling");
+  check(editorClicks == 2, "editor still receives clicks after arrow browsing");
+  for (int i = 0; i < 30; ++i) gtk_button_clicked(GTK_BUTTON(next));
+  settle();
   click(childAt(tabs, 11));
   settle();
   check(gtk_notebook_get_current_page(notebook) == 11, "clicking tab activates document");

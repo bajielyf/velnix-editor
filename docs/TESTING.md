@@ -111,6 +111,10 @@ keyboard navigation still switch documents, and reordering, removal, and window
 destruction keep the tab strip consistent. Synthesized GTK mouse press, motion,
 and release events also check dragging tabs in both directions with file-drop
 targets on their labels, and clicking active and inactive tab close buttons.
+Wheel tests cover scrolling over tabs and arrows, smooth vertical/horizontal
+scrolling, and keeping the active document unchanged. Clicking the editor must
+reveal its current tab after browsing with either the wheel or arrows, while
+still delivering the click to the editor even when it consumes the event.
 During dragging, the test checks the pass-through preview overlay, the faded
 placeholder's unchanged width, and deferred reordering. Dropping or cancelling
 must remove the preview and restore the tab's opacity; cancellation preserves
