@@ -20,6 +20,7 @@ The project currently defines these test-related targets in
 `VelnixEditor/CMakeLists.txt`:
 
 - `test_gtk`
+- `test_scrollable_tabs` (automated GTK tab-strip interaction checks)
 - `test_document_state`
 - `test_config_store`
 - `test_document_operations`
@@ -96,6 +97,20 @@ Before a release, run the main editor and verify the following flow:
 - close and reopen the application to confirm configuration persistence
 
 ## 5. Packaging Smoke Test
+
+For the independently scrollable document tabs, run the GTK regression test
+with a graphical display available:
+
+```bash
+cmake --build build --target test_scrollable_tabs -j4
+./build/VelnixEditor/test_scrollable_tabs
+```
+
+It checks that arrows scroll without activating documents, tab clicks and
+keyboard navigation still switch documents, and reordering, removal, and window
+destruction keep the tab strip consistent. Synthesized GTK mouse press, motion,
+and release events also check dragging tabs in both directions with file-drop
+targets on their labels, and clicking active and inactive tab close buttons.
 
 After running `./scripts/build-deb.sh`, install the generated package in a clean
 or disposable environment and verify:

@@ -35,6 +35,7 @@ add_executable(velnix_editor
     src/ui/EventHandler.cpp
     src/ui/Localization.cpp
     src/ui/WindowInitializer.cpp
+    src/ui/ScrollableTabBar.cpp
     src/editor/DocumentManager.cpp
     src/editor/DocumentIO.cpp
     src/editor/SaveNormalization.cpp
@@ -127,6 +128,15 @@ add_executable(test_config_store
     src/config/ConfigSchema.cpp
     src/test/ConfigStoreTest.cpp
 )
+
+add_executable(test_scrollable_tabs
+    src/ui/ScrollableTabBar.cpp
+    src/test/ScrollableTabBarTest.cpp
+)
+target_include_directories(test_scrollable_tabs PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src ${GTK3_INCLUDE_DIRS})
+target_link_libraries(test_scrollable_tabs PRIVATE ${GTK3_LIBRARIES})
+target_compile_options(test_scrollable_tabs PRIVATE -Wall -Wextra ${GTK3_CFLAGS_OTHER})
 
 add_executable(test_update_checker
     src/core/UpdateChecker.cpp

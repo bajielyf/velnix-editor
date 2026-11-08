@@ -6,6 +6,7 @@
 #include "ui/EditorWindow.h"
 #include "ui/EventHandler.h"
 #include "ui/Localization.h"
+#include "ui/ScrollableTabBar.h"
 
 #include <cctype>
 #include <map>
@@ -1272,7 +1273,8 @@ void WindowInitializer::setupLayout(
 
   gtk_widget_set_vexpand(components.notebook, TRUE);
   gtk_widget_set_hexpand(components.notebook, TRUE);
-  gtk_paned_pack1(GTK_PANED(components.editorPane), components.notebook, TRUE,
+  GtkWidget *notebookWithTabs = createScrollableTabBar(GTK_NOTEBOOK(components.notebook));
+  gtk_paned_pack1(GTK_PANED(components.editorPane), notebookWithTabs, TRUE,
                   FALSE);
 
   gtk_widget_hide(components.searchResultsPanel);
