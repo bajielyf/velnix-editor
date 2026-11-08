@@ -29,7 +29,9 @@ struct Tab {
 class ScrollableTabBar {
 public:
   GtkNotebook *notebook;
-  GtkWidget *root = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  GtkWidget *root = gtk_overlay_new();
+  GtkWidget *body = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  GtkWidget *dragLayer = gtk_drawing_area_new();
   GtkWidget *tabs = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
   GtkWidget *scroll = gtk_scrolled_window_new(nullptr, nullptr);
   GtkWidget *previous = gtk_button_new_from_icon_name("pan-start-symbolic", GTK_ICON_SIZE_MENU);
@@ -38,8 +40,50 @@ public:
   guint revealSource = 0;
   GtkWidget *dragPage = nullptr;
   bool dragging = false;
+  GtkWidget *dragSource = nullptr;
+  cairo_surface_t *dragSnapshot = nullptr;
+  guint dragTick = 0;
+  int dropIndex = -1;
+  double grabX = 0;
+  double grabY = 0;
+  double ghostX = 0;
+  double ghostY = 0;
+  double sourceOpacity = 1;
+  int ghostWidth = 0;
+  int ghostHeight = 0;
+  int markerX = 0;
+  int markerY = 0;
+  int markerHeight = 0;
+  bool previewDirty = false;
+  bool hasDamage = false;
+  GdkRectangle lastDamage{};
 
   explicit ScrollableTabBar(GtkNotebook *book) : notebook(book) {
+    gtk_container_add(GTK_CONTAINER(root), body);
+    gtk_overlay_add_overlay(GTK_OVERLAY(root), dragLayer);
+    gtk_overlay_set_overlay_pass_through(GTK_OVERLAY(root), dragLayer, TRUE);
+    gtk_widget_set_no_show_all(dragLayer, TRUE);
+    gtk_widget_set_hexpand(dragLayer, TRUE);
+    gtk_widget_set_vexpand(dragLayer, TRUE);
+    g_signal_connect(dragLayer, "draw", G_CALLBACK(+[](GtkWidget *widget, cairo_t *cr,
+                                                     gpointer data) -> gboolean {
+      auto *self = static_cast<ScrollableTabBar *>(data);
+      if (!self->dragSnapshot) return FALSE;
+      cairo_set_source_rgba(cr, 0, 0, 0, 0.18);
+      cairo_rectangle(cr, self->ghostX + 3, self->ghostY + 4,
+                       self->ghostWidth, self->ghostHeight);
+      cairo_fill(cr);
+      cairo_set_source_surface(cr, self->dragSnapshot, self->ghostX, self->ghostY);
+      cairo_paint_with_alpha(cr, 0.8);
+      GdkRGBA accent;
+      if (!gtk_style_context_lookup_color(gtk_widget_get_style_context(widget),
+                                           "theme_selected_bg_color", &accent))
+        gdk_rgba_parse(&accent, "#3584e4");
+      gdk_cairo_set_source_rgba(cr, &accent);
+      cairo_rectangle(cr, self->markerX - 1, self->markerY, 3, self->markerHeight);
+      cairo_fill(cr);
+      return FALSE;
+    }), this);
     gtk_notebook_set_show_tabs(notebook, FALSE);
     gtk_widget_set_focus_on_click(previous, FALSE);
     gtk_widget_set_focus_on_click(next, FALSE);
@@ -51,8 +95,8 @@ public:
     gtk_box_pack_start(GTK_BOX(header), previous, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(header), scroll, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(header), next, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(root), header, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(root), GTK_WIDGET(notebook), TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(body), header, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(body), GTK_WIDGET(notebook), TRUE, TRUE, 0);
     gtk_widget_set_vexpand(root, TRUE);
 
     g_signal_connect(previous, "clicked", G_CALLBACK(+[](GtkButton *, gpointer data) {
@@ -75,8 +119,7 @@ public:
                                                             guint, gpointer data) {
       auto *self = static_cast<ScrollableTabBar *>(data);
       if (self->dragPage == page) {
-        self->dragPage = nullptr;
-        self->dragging = false;
+        self->finishDrag(false);
       }
       const auto it = std::find_if(self->items.begin(), self->items.end(),
                                   [page](const Tab &tab) { return tab.page == page; });
@@ -105,6 +148,7 @@ public:
     g_signal_connect(notebook, "page-reordered", G_CALLBACK(+[](GtkNotebook *, GtkWidget *,
                                                               guint, gpointer data) {
       auto *self = static_cast<ScrollableTabBar *>(data);
+      self->finishDrag(false);
       for (const auto &tab : self->items) {
         gtk_box_reorder_child(GTK_BOX(self->tabs), tab.button,
                              gtk_notebook_page_num(self->notebook, tab.page));
@@ -113,6 +157,7 @@ public:
     }), this);
     g_signal_connect(root, "destroy", G_CALLBACK(+[](GtkWidget *, gpointer data) {
       auto *self = static_cast<ScrollableTabBar *>(data);
+      self->finishDrag(false);
       if (self->revealSource) g_source_remove(self->revealSource);
       self->revealSource = 0;
       g_signal_handlers_disconnect_by_data(self->notebook, self);
@@ -120,6 +165,63 @@ public:
       g_signal_handlers_disconnect_by_data(adjustment, self);
     }), this);
     updateArrows();
+  }
+
+  void startPreview(GtkWidget *source) {
+    dragSource = source;
+    ghostWidth = gtk_widget_get_allocated_width(source);
+    ghostHeight = gtk_widget_get_allocated_height(source);
+    dragSnapshot = gdk_window_create_similar_surface(gtk_widget_get_window(source),
+        CAIRO_CONTENT_COLOR_ALPHA, ghostWidth, ghostHeight);
+    cairo_t *cr = cairo_create(dragSnapshot);
+    gtk_widget_draw(source, cr);
+    cairo_destroy(cr);
+    sourceOpacity = gtk_widget_get_opacity(source);
+    gtk_widget_set_opacity(source, 0.25);
+    dragging = true;
+    if (revealSource) g_source_remove(revealSource);
+    revealSource = 0;
+    gtk_widget_show(dragLayer);
+    dragTick = gtk_widget_add_tick_callback(root, +[](GtkWidget *, GdkFrameClock *,
+                                                     gpointer data) -> gboolean {
+      auto *self = static_cast<ScrollableTabBar *>(data);
+      if (self->previewDirty) {
+        GdkRectangle damage{static_cast<int>(self->ghostX) - 2,
+                            static_cast<int>(self->ghostY) - 2,
+                            self->ghostWidth + 8, self->ghostHeight + 8};
+        GdkRectangle marker{self->markerX - 2, self->markerY, 5, self->markerHeight};
+        gdk_rectangle_union(&damage, &marker, &damage);
+        GdkRectangle redraw = damage;
+        if (self->hasDamage) gdk_rectangle_union(&redraw, &self->lastDamage, &redraw);
+        gtk_widget_queue_draw_area(self->dragLayer, redraw.x, redraw.y, redraw.width, redraw.height);
+        self->lastDamage = damage;
+        self->hasDamage = true;
+        self->previewDirty = false;
+      }
+      return G_SOURCE_CONTINUE;
+    }, this, nullptr);
+  }
+
+  void finishDrag(bool commit) {
+    GtkWidget *page = dragPage;
+    const int destination = dropIndex;
+    const bool wasDragging = dragging;
+    if (dragTick) gtk_widget_remove_tick_callback(root, dragTick);
+    dragTick = 0;
+    gtk_widget_hide(dragLayer);
+    if (dragSource) gtk_widget_set_opacity(dragSource, sourceOpacity);
+    if (dragSnapshot) cairo_surface_destroy(dragSnapshot);
+    dragSnapshot = nullptr;
+    dragSource = nullptr;
+    dragPage = nullptr;
+    dragging = false;
+    dropIndex = -1;
+    hasDamage = false;
+    previewDirty = false;
+    if (commit && wasDragging && page && destination >= 0 &&
+        gtk_notebook_page_num(notebook, page) >= 0 &&
+        gtk_notebook_get_tab_reorderable(notebook, page))
+      gtk_notebook_reorder_child(notebook, page, destination);
   }
 
   void updateArrows() {
@@ -168,7 +270,7 @@ public:
     }
   }
 
-  void reorderAt(GtkWidget *source, double x, double y) {
+  void previewAt(GtkWidget *source, double x, double y) {
     if (!dragPage || !gtk_notebook_get_tab_reorderable(notebook, dragPage)) return;
     const int from = gtk_notebook_page_num(notebook, dragPage);
     if (from < 0) return;
@@ -176,21 +278,35 @@ public:
     if (!gtk_widget_translate_coordinates(source, tabs, static_cast<int>(x),
                                          static_cast<int>(y), &tabX, &tabY)) return;
     int insertion = gtk_notebook_get_n_pages(notebook);
+    int insertionX = 0;
     GList *children = gtk_container_get_children(GTK_CONTAINER(tabs));
     int index = 0;
     for (GList *child = children; child; child = child->next, ++index) {
       GtkWidget *tab = GTK_WIDGET(child->data);
-      if (tab == source) continue;
       int left = 0, top = 0;
       gtk_widget_translate_coordinates(tab, tabs, 0, 0, &left, &top);
+      insertionX = left + gtk_widget_get_allocated_width(tab);
+      if (tab == source) continue;
       if (tabX < left + gtk_widget_get_allocated_width(tab) / 2) {
         insertion = index;
+        insertionX = left;
         break;
       }
     }
     g_list_free(children);
+    gtk_widget_translate_coordinates(tabs, root, insertionX, 0, &markerX, &markerY);
+    markerHeight = gtk_widget_get_allocated_height(tabs);
+    int pointerX = 0, pointerY = 0;
+    gtk_widget_translate_coordinates(source, root, static_cast<int>(x), static_cast<int>(y),
+                                     &pointerX, &pointerY);
+    ghostX = pointerX - grabX;
+    ghostY = pointerY - grabY + 6;
+    // Keep the preview inside the application while allowing vertical lift.
+    ghostX = std::clamp(ghostX, 0.0, std::max(0.0, double(gtk_widget_get_allocated_width(root) - ghostWidth)));
+    ghostY = std::clamp(ghostY, 0.0, std::max(0.0, double(gtk_widget_get_allocated_height(root) - ghostHeight)));
     if (from < insertion) --insertion;
-    if (from != insertion) gtk_notebook_reorder_child(notebook, dragPage, insertion);
+    dropIndex = insertion;
+    previewDirty = true;
   }
 
   void add(GtkWidget *page) {
@@ -226,7 +342,7 @@ public:
     gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(gesture), GDK_BUTTON_PRIMARY);
     g_object_set_data_full(G_OBJECT(button), "tab-drag-gesture", gesture, g_object_unref);
     g_signal_connect(gesture, "drag-begin", G_CALLBACK(+[](GtkGestureDrag *gesture,
-        gdouble, gdouble, gpointer data) {
+        gdouble x, gdouble y, gpointer data) {
       auto *self = static_cast<ScrollableTabBar *>(data);
       GtkWidget *source = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
       const GdkEvent *event = gtk_gesture_get_last_event(GTK_GESTURE(gesture), nullptr);
@@ -238,6 +354,8 @@ public:
         }
       }
       self->dragPage = GTK_WIDGET(g_object_get_data(G_OBJECT(source), "document-page"));
+      self->grabX = x;
+      self->grabY = y;
     }), this);
     g_signal_connect(gesture, "drag-update", G_CALLBACK(+[](GtkGestureDrag *gesture,
         gdouble offsetX, gdouble offsetY, gpointer data) {
@@ -249,27 +367,23 @@ public:
       gtk_gesture_drag_get_start_point(gesture, &startX, &startY);
       if (!self->dragging && !gtk_drag_check_threshold(source, startX, startY,
                                                        startX + offsetX, startY + offsetY)) return;
-      self->dragging = true;
-      if (self->revealSource) g_source_remove(self->revealSource);
-      self->revealSource = 0;
+      if (!self->dragging) self->startPreview(source);
       gtk_gesture_set_state(GTK_GESTURE(gesture), GTK_EVENT_SEQUENCE_CLAIMED);
       double x = 0;
       double y = 0;
       if (gtk_gesture_get_point(GTK_GESTURE(gesture), nullptr, &x, &y))
-        self->reorderAt(source, x, y);
+        self->previewAt(source, x, y);
     }), this);
     g_signal_connect(gesture, "drag-end", G_CALLBACK(+[](GtkGestureDrag *, gdouble,
                                                         gdouble, gpointer data) {
       auto *self = static_cast<ScrollableTabBar *>(data);
       const bool wasDragging = self->dragging;
-      self->dragPage = nullptr;
-      self->dragging = false;
+      self->finishDrag(true);
       if (wasDragging) self->sync();
     }), this);
     g_signal_connect(gesture, "cancel", G_CALLBACK(+[](GtkGesture *, GdkEventSequence *, gpointer data) {
       auto *self = static_cast<ScrollableTabBar *>(data);
-      self->dragPage = nullptr;
-      self->dragging = false;
+      self->finishDrag(false);
     }), this);
     gtk_widget_show_all(button);
     sync();

@@ -80,7 +80,13 @@ GtkWidget *appendClosablePage(GtkNotebook *notebook, GtkWidget **closeOut) {
   return page;
 }
 
-void dragTab(GtkWidget *source, GtkWidget *target, bool after) {
+void dragTab(GtkWidget *source, GtkWidget *target, bool after, bool cancel = false) {
+  GtkWidget *root = gtk_bin_get_child(GTK_BIN(gtk_widget_get_toplevel(source)));
+  GtkWidget *layer = childAt(root, 1);
+  GtkNotebook *book = GTK_NOTEBOOK(childAt(gtk_bin_get_child(GTK_BIN(root)), 1));
+  GtkWidget *page = GTK_WIDGET(g_object_get_data(G_OBJECT(source), "document-page"));
+  const int originalIndex = gtk_notebook_page_num(book, page);
+  const int originalWidth = gtk_widget_get_allocated_width(source);
   GdkWindow *window = gtk_widget_get_window(source);
   int rootX = 0, rootY = 0;
   gdk_window_get_origin(window, &rootX, &rootY);
@@ -117,7 +123,29 @@ void dragTab(GtkWidget *source, GtkWidget *target, bool after) {
   send(GDK_BUTTON_PRESS, startX, startY);
   for (int i = 1; i <= 8; ++i)
     send(GDK_MOTION_NOTIFY, startX + (targetX - startX) * i / 8, startY);
+  check(gtk_widget_get_mapped(layer), "drag preview overlay is visible");
+  check(gtk_overlay_get_overlay_pass_through(GTK_OVERLAY(root), layer),
+        "drag preview does not intercept pointer events");
+  check(gtk_widget_get_opacity(source) < 0.5, "original tab becomes a faded placeholder");
+  check(gtk_widget_get_allocated_width(source) == originalWidth, "placeholder retains tab width");
+  check(gtk_notebook_page_num(book, page) == originalIndex, "drag preview does not commit ordering early");
+  if (const char *screenshot = std::getenv("VELNIX_TEST_DRAG_SCREENSHOT")) {
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+        gtk_widget_get_allocated_width(root), gtk_widget_get_allocated_height(root));
+    cairo_t *cr = cairo_create(surface);
+    gtk_widget_draw(root, cr);
+    cairo_destroy(cr);
+    cairo_surface_write_to_png(surface, screenshot);
+    cairo_surface_destroy(surface);
+  }
+  if (cancel) {
+    auto *gesture = GTK_EVENT_CONTROLLER(g_object_get_data(G_OBJECT(source), "tab-drag-gesture"));
+    gtk_event_controller_reset(gesture);
+    check(gtk_notebook_page_num(book, page) == originalIndex, "cancelled drag preserves document order");
+  }
   send(GDK_BUTTON_RELEASE, targetX, startY);
+  check(!gtk_widget_get_visible(layer), "drag preview disappears after drop");
+  check(gtk_widget_get_opacity(source) == 1, "placeholder opacity is restored after drop");
 }
 
 } // namespace
@@ -141,7 +169,7 @@ int main(int argc, char **argv) {
   }
   gtk_widget_show_all(window);
   settle();
-  GtkWidget *header = childAt(root, 0);
+  GtkWidget *header = childAt(gtk_bin_get_child(GTK_BIN(root)), 0);
   GtkWidget *previous = childAt(header, 0);
   GtkWidget *scroll = childAt(header, 1);
   GtkWidget *next = childAt(header, 2);
@@ -209,6 +237,7 @@ int main(int argc, char **argv) {
         "dragging preserves the dragged document as active");
   dragTab(childAt(tabs, 2), childAt(tabs, 0), false);
   check(gtk_notebook_page_num(notebook, firstPage) == 0, "mouse drag moves last tab before first tab");
+  dragTab(childAt(tabs, 0), childAt(tabs, 2), true, true);
   gtk_notebook_remove_page(notebook, gtk_notebook_page_num(notebook, thirdPage));
   settle();
   click(secondClose);

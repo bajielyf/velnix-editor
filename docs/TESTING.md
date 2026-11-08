@@ -111,6 +111,11 @@ keyboard navigation still switch documents, and reordering, removal, and window
 destruction keep the tab strip consistent. Synthesized GTK mouse press, motion,
 and release events also check dragging tabs in both directions with file-drop
 targets on their labels, and clicking active and inactive tab close buttons.
+During dragging, the test checks the pass-through preview overlay, the faded
+placeholder's unchanged width, and deferred reordering. Dropping or cancelling
+must remove the preview and restore the tab's opacity; cancellation preserves
+the original order. Set `VELNIX_TEST_DRAG_SCREENSHOT` to a PNG path to capture
+the drag preview during the test.
 
 After running `./scripts/build-deb.sh`, install the generated package in a clean
 or disposable environment and verify:
