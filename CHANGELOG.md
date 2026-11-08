@@ -2,6 +2,38 @@
 
 All notable project-level changes intended for published releases should be recorded in this file.
 
+## [0.1.7] - 2026-11-08
+
+Patch release focused on precise UTF-8 caret placement, a clearer find
+workflow, and smoother navigation and reordering in crowded tab bars.
+
+### Added
+
+- Added a localized **Count** action to the Find dialog that reports the number
+  of matches in the current document using the active case, whole-word, and
+  regular-expression options.
+- Added a flat status area to the Find dialog for match totals, empty-query
+  guidance, and regular-expression errors.
+- Added independent left/right controls and mouse-wheel scrolling for the tab
+  strip without changing the active document.
+- Added drag feedback for tab reordering, including a translucent preview,
+  source placeholder, and insertion marker.
+- Added automated GTK interaction coverage for tab scrolling, reordering,
+  cancellation, active-tab visibility, and widget lifecycle behavior.
+
+### Changed
+
+- Reorganized the Find dialog so the search field, options, vertical action
+  buttons, and bottom status area have clearer visual grouping.
+- Automatically reveals the active tab after editor clicks when it has moved
+  outside the visible tab-strip viewport.
+
+### Fixed
+
+- Fixed UTF-8 hit testing so clicking the left or right half of CJK characters,
+  accented characters, and emoji places the caret on the expected boundary.
+- Fixed tab-strip mouse-wheel handling so scrolling navigates the strip instead
+  of unexpectedly switching documents.
 ## [0.1.6] - 2026-11-05
 
 Patch release focused on session restore reliability, selection statistics,

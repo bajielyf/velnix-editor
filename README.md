@@ -7,7 +7,7 @@ and source-code work.
 
 Built with GTK, Scintilla, and Lexilla, Velnix Editor focuses on direct, efficient editing workflows in a clean native desktop application.
 
-Current release target: **0.1.6**.
+Current release target: **0.1.7**.
 
 ## Screenshot
 
@@ -46,8 +46,11 @@ Current demos focus on implemented editing workflows in the current release.
 - Native GTK interface with fast startup and low overhead
 - Multi-tab editing for text and source files, with menu, command-line, and
   drag-and-drop file opening
+- Scrollable tab navigation with wheel support, active-tab reveal, and visual
+  drag-and-drop reordering feedback
 - Non-modal find and replace with backwards search, syntax highlighting,
   per-document custom keyword highlighting, and macro recording/playback
+- Current-document match counting with localized feedback in the Find dialog
 - Editor context-menu access to common editing, case conversion, whitespace,
   and custom-highlighting actions
 - Automatic legacy-encoding detection, manual reopen-with-encoding support,
@@ -106,8 +109,8 @@ To publish a GitHub Release, first make sure the version in `CMakeLists.txt`
 and `CHANGELOG.md` is current, then push a matching version tag:
 
 ```bash
-git tag v0.1.6
-git push origin v0.1.6
+git tag v0.1.7
+git push origin v0.1.7
 ```
 
 The tag must match the CMake project version. A successful tagged build uses
@@ -128,7 +131,8 @@ User configuration is stored under `~/.config/velnix-editor/` by default.
 - [Known Limitations](docs/KNOWN_ISSUES.md)
 - [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md)
 - [Release Checklist](docs/RELEASE_CHECKLIST.md)
-- [Release Notes 0.1.6](docs/RELEASE_NOTES_0.1.6.md)
+- [Release Notes 0.1.7](docs/RELEASE_NOTES_0.1.7.md)
+- [Release Notes 0.1.6](docs/RELEASE_NOTES_0.1.6.md) - historical release snapshot
 - [Release Notes 0.1.5](docs/RELEASE_NOTES_0.1.5.md) - historical release snapshot
 - [Release Notes 0.1.4](docs/RELEASE_NOTES_0.1.4.md) - historical release snapshot
 - [Release Notes 0.1.3](docs/RELEASE_NOTES_0.1.3.md) - historical release snapshot

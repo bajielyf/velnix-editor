@@ -1,6 +1,6 @@
 # Velnix Editor Known Limitations
 
-This document records known limitations for the Velnix Editor 0.1.6 release.
+This document records known limitations for the Velnix Editor 0.1.7 release.
 
 ## 1. Search Responsiveness
 
@@ -86,7 +86,7 @@ Planned follow-up:
 
 ## 7. Plugin Support
 
-Velnix Editor 0.1.6 does not include a plugin system. This release keeps
+Velnix Editor 0.1.7 does not include a plugin system. This release keeps
 the extension boundary intentionally simple while the core editor behavior
 stabilizes.
 

@@ -93,7 +93,7 @@ The script supports environment variable overrides. Common options include:
 Example:
 
 ```bash
-VERSION=0.1.6 BUILD_TYPE=Release ./scripts/build-deb.sh
+VERSION=0.1.7 BUILD_TYPE=Release ./scripts/build-deb.sh
 ```
 
 ## 5. Install the Generated Debian Package

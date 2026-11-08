@@ -254,14 +254,14 @@ package name, executable name, and release process.
 
 ## Milestones
 
-### M1: 0.1.6 Patch Release Cleanup
+### M1: 0.1.7 Patch Release Cleanup
 
-- Confirm release metadata for version `0.1.6`.
+- Confirm release metadata for version `0.1.7`.
 - Confirm package contents and installed files.
 - Complete build, test, package, and install validation.
 - Finish release notes and known limitations.
 
-### M2: Patch Release, 0.1.6
+### M2: Patch Release, 0.1.7
 
 - Publish package artifact.
 - Publish changelog and known issues.
