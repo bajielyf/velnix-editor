@@ -476,8 +476,18 @@ void SearchManager::create_find_dialog() {
     Localization::bind_window_title(find_dialog, "search.find_title");
 
     GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(find_dialog));
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    GtkWidget *action_area = gtk_dialog_get_action_area(GTK_DIALOG(find_dialog));
+    G_GNUC_END_IGNORE_DEPRECATIONS
+    // This dialog supplies its own vertical action buttons. Keep GtkDialog's
+    // unused action area out of show_all() so it cannot leave a blank strip
+    // below the custom status bar.
+    gtk_widget_set_no_show_all(action_area, TRUE);
+    gtk_widget_hide(action_area);
+
     GtkWidget *layout = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
-    gtk_container_add(GTK_CONTAINER(content_area), layout);
+    gtk_widget_set_vexpand(layout, TRUE);
+    gtk_box_pack_start(GTK_BOX(content_area), layout, TRUE, TRUE, 0);
 
     GtkWidget *content_grid = gtk_grid_new();
     gtk_grid_set_row_spacing(GTK_GRID(content_grid), 10);
