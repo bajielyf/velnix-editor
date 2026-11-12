@@ -18,6 +18,84 @@
 
 namespace {
 
+constexpr const char *kEditorScrollbarClass = "velnix-editor-scrollbar";
+constexpr const char *kEditorScrollbarDraggingClass =
+    "velnix-editor-scrollbar-dragging";
+
+GtkCssProvider *editor_scrollbar_css_provider() {
+  static GtkCssProvider *provider = [] {
+    GtkCssProvider *created = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(
+        created,
+        "scrollbar.velnix-editor-scrollbar.vertical {"
+        "  min-width: 10px;"
+        "}"
+        "scrollbar.velnix-editor-scrollbar.vertical:hover,"
+        "scrollbar.velnix-editor-scrollbar.vertical."
+        "velnix-editor-scrollbar-dragging {"
+        "  min-width: 16px;"
+        "}"
+        "scrollbar.velnix-editor-scrollbar.vertical slider {"
+        "  min-width: 8px;"
+        "}"
+        "scrollbar.velnix-editor-scrollbar.vertical:hover slider,"
+        "scrollbar.velnix-editor-scrollbar.vertical."
+        "velnix-editor-scrollbar-dragging slider {"
+        "  min-width: 14px;"
+        "}",
+        -1, nullptr);
+    return created;
+  }();
+  return provider;
+}
+
+gboolean on_editor_scrollbar_button_press(GtkWidget *scrollbar,
+                                           GdkEventButton *, gpointer) {
+  gtk_style_context_add_class(gtk_widget_get_style_context(scrollbar),
+                              kEditorScrollbarDraggingClass);
+  return FALSE;
+}
+
+gboolean on_editor_scrollbar_button_release(GtkWidget *scrollbar,
+                                             GdkEventButton *, gpointer) {
+  gtk_style_context_remove_class(gtk_widget_get_style_context(scrollbar),
+                                 kEditorScrollbarDraggingClass);
+  return FALSE;
+}
+
+void style_editor_vertical_scrollbar(GtkWidget *child, gpointer) {
+  if (!GTK_IS_SCROLLBAR(child) ||
+      gtk_orientable_get_orientation(GTK_ORIENTABLE(child)) !=
+          GTK_ORIENTATION_VERTICAL) {
+    return;
+  }
+
+  GtkStyleContext *context = gtk_widget_get_style_context(child);
+  gtk_style_context_add_class(context, kEditorScrollbarClass);
+  g_signal_connect(child, "button-press-event",
+                   G_CALLBACK(on_editor_scrollbar_button_press), nullptr);
+  g_signal_connect(child, "button-release-event",
+                   G_CALLBACK(on_editor_scrollbar_button_release), nullptr);
+}
+
+void style_editor_scrollbar(GtkWidget *scintilla) {
+  if (!GTK_IS_CONTAINER(scintilla)) {
+    return;
+  }
+
+  static GdkScreen *styledScreen = nullptr;
+  GdkScreen *screen = gtk_widget_get_screen(scintilla);
+  if (screen && screen != styledScreen) {
+    gtk_style_context_add_provider_for_screen(
+        screen, GTK_STYLE_PROVIDER(editor_scrollbar_css_provider()),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    styledScreen = screen;
+  }
+
+  gtk_container_forall(GTK_CONTAINER(scintilla),
+                       style_editor_vertical_scrollbar, nullptr);
+}
+
 void apply_normalized_text_to_editor(GtkWidget *scintilla,
                                      const std::string &text) {
   if (!scintilla) {
@@ -370,6 +448,7 @@ DocumentOperations::DocumentOperations(IDocumentOperationsConfig *config)
 int DocumentOperations::createNewDocument(const std::string &title) {
   Document doc;
   doc.scintilla = scintilla_new();
+  style_editor_scrollbar(doc.scintilla);
   doc.tabTextLabel = nullptr;
   doc.closeButton = nullptr;
   doc.bufferId = this->editorWindow->allocateNextBufferId();
