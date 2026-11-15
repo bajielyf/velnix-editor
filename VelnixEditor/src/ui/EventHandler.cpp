@@ -460,15 +460,15 @@ void EventHandler::on_custom_highlight_color_activate(GtkWidget *widget,
   const int documentIndex = documentIndexData
                                 ? GPOINTER_TO_INT(documentIndexData)
                                 : -1;
-  const char *highlightText =
-      static_cast<const char *>(g_object_get_data(G_OBJECT(widget),
-                                                  "highlight-text"));
-  if (highlightText && *highlightText) {
+  const auto *highlightText =
+      static_cast<const std::string *>(g_object_get_data(G_OBJECT(widget),
+                                                        "highlight-text"));
+  if (highlightText && !highlightText->empty()) {
     if (documentIndex >= 0) {
       editorWindow->highlightTextInDocumentWithColor(documentIndex, colorIndex,
-                                                     highlightText);
+                                                     *highlightText);
     } else {
-      editorWindow->highlightTextWithColor(colorIndex, highlightText);
+      editorWindow->highlightTextWithColor(colorIndex, *highlightText);
     }
     return;
   }

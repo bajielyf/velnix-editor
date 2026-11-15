@@ -191,7 +191,8 @@ void append_custom_highlight_menu_items(GtkWidget *menu,
                       GINT_TO_POINTER(documentIndex));
     if (!selectedText.empty()) {
       g_object_set_data_full(G_OBJECT(colorItem), "highlight-text",
-                             g_strdup(selectedText.c_str()), g_free);
+                             new std::string(selectedText),
+                             +[](gpointer data) { delete static_cast<std::string *>(data); });
     }
     g_signal_connect(colorItem, "activate",
                      G_CALLBACK(EventHandler::on_custom_highlight_color_activate),
@@ -229,7 +230,8 @@ void append_clear_custom_highlight_menu_items(GtkWidget *menu,
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), clearItem);
 }
 
-std::string get_single_selection_text(GtkWidget *scintilla) {
+std::string get_single_selection_text(GtkWidget *scintilla,
+                                     sptr_t maxLength = kMaxSelectedKeywordLength) {
   if (!scintilla) {
     return {};
   }
@@ -249,13 +251,14 @@ std::string get_single_selection_text(GtkWidget *scintilla) {
   }
 
   const sptr_t selectionLength = selectionEnd - selectionStart;
-  if (selectionLength <= 0 || selectionLength > kMaxSelectedKeywordLength) {
+  if (selectionLength <= 0 || (maxLength > 0 && selectionLength > maxLength)) {
     return {};
   }
 
   std::vector<char> buffer(static_cast<size_t>(selectionLength) + 1, '\0');
-  scintilla_send_message(SCINTILLA(scintilla), SCI_GETSELTEXT, 0,
-                         reinterpret_cast<sptr_t>(buffer.data()));
+  Sci_TextRangeFull range{{selectionStart, selectionEnd}, buffer.data()};
+  scintilla_send_message(SCINTILLA(scintilla), SCI_GETTEXTRANGEFULL, 0,
+                         reinterpret_cast<sptr_t>(&range));
   return std::string(buffer.data(), static_cast<size_t>(selectionLength));
 }
 
@@ -1459,7 +1462,7 @@ void EditorWindow::highlightSelectionWithColor(int colorIndex) {
     return;
   }
 
-  const std::string selectedText = get_single_selection_text(doc->scintilla);
+  const std::string selectedText = get_single_selection_text(doc->scintilla, 0);
   highlightTextWithColor(colorIndex, selectedText);
 }
 
@@ -1477,11 +1480,11 @@ void EditorWindow::highlightTextInDocumentWithColor(int documentIndex,
   }
 
   colorIndex = clamp_int(colorIndex, 0, kCustomKeywordIndicatorCount - 1);
-  const std::string selectedText = text;
-  if (!is_highlightable_selected_keyword(selectedText)) {
+  const std::string &selectedText = text;
+  if (selectedText.empty()) {
     GtkWidget *dialog = gtk_message_dialog_new(
         GTK_WINDOW(window), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK,
-        "%s", "Select a single word or token before applying a highlight.");
+        "%s", Localization::text("highlight.select_text"));
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     return;
@@ -1544,7 +1547,7 @@ void EditorWindow::showEditorContextMenu(GtkWidget *widget,
     activateDocument(contextDocumentIndex);
   }
 
-  std::string contextText = get_single_selection_text(widget);
+  std::string contextText = get_single_selection_text(widget, 0);
   if (contextText.empty() && event) {
     const sptr_t position = scintilla_send_message(
         SCINTILLA(widget), SCI_POSITIONFROMPOINTCLOSE,
@@ -2630,7 +2633,7 @@ void EditorWindow::updateCustomKeywordHighlightsForDocument(Document &doc,
   }
 
   for (const auto &highlight : doc.customKeywordHighlights) {
-    if (!is_highlightable_selected_keyword(highlight.text)) {
+    if (highlight.text.empty()) {
       continue;
     }
 
@@ -2639,9 +2642,7 @@ void EditorWindow::updateCustomKeywordHighlightsForDocument(Document &doc,
     const sptr_t selectedLength =
         static_cast<sptr_t>(highlight.text.size());
     sptr_t searchStart = 0;
-    const int searchFlags =
-        SCFIND_MATCHCASE |
-        (is_plain_ascii_token(highlight.text) ? SCFIND_WHOLEWORD : 0);
+    const int searchFlags = SCFIND_MATCHCASE;
     scintilla_send_message(SCINTILLA(target), SCI_SETSEARCHFLAGS, searchFlags,
                            0);
     scintilla_send_message(SCINTILLA(target), SCI_SETINDICATORCURRENT,

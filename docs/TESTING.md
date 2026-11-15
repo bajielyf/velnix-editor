@@ -78,6 +78,11 @@ Before a release, run the main editor and verify the following flow:
   highlight preference, while double-click word selection highlights matching
   occurrences
 - switch syntax highlighting by language or file extension
+- select phrases, punctuation, CJK text, tabs, multiline text, and text longer
+  than 128 bytes; apply a Highlight color from both the View and context menus
+  and verify case-sensitive literal matches, including substrings within words
+- change or clear a custom highlight color and confirm automatic selected-word
+  occurrence highlighting keeps its existing behavior
 - convert encoding through the `Encoding` menu
 - reopen a non-UTF file with an explicit encoding and verify lossless saving
 - convert among LF, CRLF, and CR from both the Edit menu and status bar
