@@ -2,6 +2,28 @@
 
 All notable project-level changes intended for published releases should be recorded in this file.
 
+## [0.1.8] - 2026-11-18
+
+Patch release focused on flexible custom highlighting and small interaction
+improvements in the Find dialog and editor scrollbar.
+
+### Changed
+
+- Expanded custom highlighting to accept arbitrary non-empty selections,
+  including phrases, punctuation, multiline text, and selections longer than
+  128 bytes.
+- Matched manually highlighted selections literally without applying
+  whole-word restrictions, while keeping automatic keyword highlighting
+  behavior unchanged.
+- Made the editor's vertical scrollbar wider on hover and kept it expanded
+  throughout dragging for a larger pointer target.
+
+### Fixed
+
+- Anchored the Find dialog status area to the bottom edge by removing the
+  unused GTK dialog action area and allowing the custom layout to fill the
+  available content height.
+
 ## [0.1.7] - 2026-11-08
 
 Patch release focused on precise UTF-8 caret placement, a clearer find

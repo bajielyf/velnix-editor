@@ -7,7 +7,7 @@ and source-code work.
 
 Built with GTK, Scintilla, and Lexilla, Velnix Editor focuses on direct, efficient editing workflows in a clean native desktop application.
 
-Current release target: **0.1.7**.
+Current release target: **0.1.8**.
 
 ## Screenshot
 
@@ -52,7 +52,10 @@ Current demos focus on implemented editing workflows in the current release.
   per-document custom keyword highlighting, and macro recording/playback
 - Current-document match counting with localized feedback in the Find dialog
 - Editor context-menu access to common editing, case conversion, whitespace,
-  and custom-highlighting actions
+  and custom-highlighting actions, including literal highlighting of selected
+  phrases, punctuation, long text, and multiline text
+- Editor vertical scrollbar that expands on hover and remains wide while being
+  dragged
 - Automatic legacy-encoding detection, manual reopen-with-encoding support,
   and lossless UTF conversion workflows
 - Interactive status-bar controls for language, EOL mode, and encoding
@@ -109,8 +112,8 @@ To publish a GitHub Release, first make sure the version in `CMakeLists.txt`
 and `CHANGELOG.md` is current, then push a matching version tag:
 
 ```bash
-git tag v0.1.7
-git push origin v0.1.7
+git tag v0.1.8
+git push origin v0.1.8
 ```
 
 The tag must match the CMake project version. A successful tagged build uses
@@ -131,7 +134,8 @@ User configuration is stored under `~/.config/velnix-editor/` by default.
 - [Known Limitations](docs/KNOWN_ISSUES.md)
 - [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md)
 - [Release Checklist](docs/RELEASE_CHECKLIST.md)
-- [Release Notes 0.1.7](docs/RELEASE_NOTES_0.1.7.md)
+- [Release Notes 0.1.8](docs/RELEASE_NOTES_0.1.8.md)
+- [Release Notes 0.1.7](docs/RELEASE_NOTES_0.1.7.md) - historical release snapshot
 - [Release Notes 0.1.6](docs/RELEASE_NOTES_0.1.6.md) - historical release snapshot
 - [Release Notes 0.1.5](docs/RELEASE_NOTES_0.1.5.md) - historical release snapshot
 - [Release Notes 0.1.4](docs/RELEASE_NOTES_0.1.4.md) - historical release snapshot

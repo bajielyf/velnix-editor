@@ -47,6 +47,8 @@ Use this checklist when preparing a Velnix Editor release.
 - [ ] Macro recording, playback, and management
 - [ ] External file modification detection and reload
 - [ ] Editor context-menu action availability and behavior
+- [ ] Custom highlighting of phrases, punctuation, long selections, and multiline text
+- [ ] Editor vertical scrollbar expansion on hover and throughout dragging
 - [ ] Manual update check and daily automatic-check behavior
 
 ## 5. Documentation and Release Materials
