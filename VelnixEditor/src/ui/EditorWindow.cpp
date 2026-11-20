@@ -3016,31 +3016,30 @@ void EditorWindow::open_file_dialog() {
       GTK_FILE_CHOOSER_ACTION_OPEN, Localization::text("dialog.cancel"),
       GTK_RESPONSE_CANCEL, Localization::text("dialog.open"),
       GTK_RESPONSE_ACCEPT, NULL);
+  GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+  gtk_file_chooser_set_select_multiple(chooser, TRUE);
 
   if (!lastFileDialogDir.empty()) {
-    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog),
-                                        lastFileDialogDir.c_str());
+    gtk_file_chooser_set_current_folder(chooser, lastFileDialogDir.c_str());
   } else {
     Document *currentDoc = documentManager->getCurrentDocument();
     if (currentDoc && !currentDoc->filePath.empty()) {
       std::string currentDir = dirname_from_path(currentDoc->filePath);
       if (!currentDir.empty()) {
-        gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog),
-                                            currentDir.c_str());
+        gtk_file_chooser_set_current_folder(chooser, currentDir.c_str());
       }
     }
   }
 
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
-    char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-    if (filename) {
-      std::string path = filename;
-      g_free(filename);
-      open_document_path(path);
-    }
-  }
-
+  GSList *filenames = gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT
+                          ? gtk_file_chooser_get_filenames(chooser)
+                          : nullptr;
   gtk_widget_destroy(dialog);
+
+  for (GSList *entry = filenames; entry; entry = entry->next) {
+    open_document_path(static_cast<const char *>(entry->data));
+  }
+  g_slist_free_full(filenames, g_free);
 }
 
 bool EditorWindow::offer_save_if_modified() {
