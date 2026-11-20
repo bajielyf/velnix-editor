@@ -25,7 +25,7 @@ GtkWidget *localized_label(const char *key) {
 }
 
 GtkWidget *localized_button(const char *key) {
-    GtkWidget *widget = gtk_button_new_with_label(Localization::text(key));
+    GtkWidget *widget = gtk_button_new_with_mnemonic(Localization::text(key));
     Localization::bind_widget_text(widget, key);
     return widget;
 }
